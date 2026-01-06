@@ -6,7 +6,7 @@ import 'package:frappe_app/model/notification_response.dart';
 import 'package:frappe_app/services/api/api.dart';
 import 'package:frappe_app/utils/constants.dart';
 import 'package:frappe_app/widgets/user_avatar.dart';
-import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'form_view/form_view.dart';
@@ -15,12 +15,7 @@ class NotifcationView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0.8,
-        title: Text(
-          'Notifications',
-        ),
-      ),
+      appBar: AppBar(elevation: 0.8, title: Text('Notifications')),
       body: PagewiseListView(
         pageLoadController: PagewiseLoadController(
           pageSize: Constants.pageSize,
@@ -32,11 +27,9 @@ class NotifcationView extends StatelessWidget {
               doctype: "Notification Log",
             );
 
-            var notificationsResponse = NoticationResponse.fromJson(
-              {
-                "message": listResponse,
-              },
-            );
+            var notificationsResponse = NoticationResponse.fromJson({
+              "message": listResponse,
+            });
 
             return notificationsResponse.message;
           },
@@ -49,11 +42,9 @@ class NotifcationView extends StatelessWidget {
               ListTile(
                 minLeadingWidth: 10,
                 visualDensity: VisualDensity(horizontal: 0, vertical: -4),
-                title: Html(
-                  data: e.subject!,
-                ),
+                title: Html(data: e.subject!),
                 onTap: () {
-                  pushNewScreen(
+                  PersistentNavBarNavigator.pushNewScreen(
                     context,
                     screen: FormView(
                       name: e.documentName!,
@@ -64,15 +55,9 @@ class NotifcationView extends StatelessWidget {
                 },
                 subtitle: Padding(
                   padding: const EdgeInsets.only(left: 8.0),
-                  child: Text(timeago.format(
-                    DateTime.parse(
-                      e.creation!,
-                    ),
-                  )),
+                  child: Text(timeago.format(DateTime.parse(e.creation!))),
                 ),
-                leading: UserAvatar(
-                  uid: e.fromUser!,
-                ),
+                leading: UserAvatar(uid: e.fromUser!),
               ),
               Divider(),
             ],

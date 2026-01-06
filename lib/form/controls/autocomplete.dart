@@ -8,7 +8,12 @@ import 'package:frappe_app/config/frappe_icons.dart';
 import 'package:frappe_app/config/palette.dart';
 import 'package:frappe_app/model/common.dart';
 import 'package:frappe_app/utils/frappe_icon.dart';
-import 'package:frappe_app/widgets/form_builder_typeahead.dart';
+import 'package:frappe_app/widgets/form_builder_typeahead.dart'
+    show
+        ItemBuilder,
+        SuggestionsCallback,
+        SelectionToTextTransformer,
+        FormBuilderTypeAhead;
 
 import '../../model/doctype_response.dart';
 
@@ -25,8 +30,8 @@ class AutoComplete extends StatefulWidget {
   final void Function(dynamic)? onSuggestionSelected;
   final Widget? suffixIcon;
   final Key? key;
-  final ItemBuilder? itemBuilder;
-  final SuggestionsCallback? suggestionsCallback;
+  final ItemBuilder<dynamic>? itemBuilder;
+  final SuggestionsCallback<dynamic>? suggestionsCallback;
   final SelectionToTextTransformer? selectionToTextTransformer;
   final InputDecoration? inputDecoration;
   final TextEditingController? controller;
@@ -66,59 +71,58 @@ class _AutoCompleteState extends State<AutoComplete>
     var f = setMandatory(widget.doctypeField);
 
     if (f != null) {
-      validators.add(
-        f(context),
-      );
+      validators.add(f);
     }
 
     return Theme(
       data: Theme.of(context).copyWith(primaryColor: Colors.black),
-      child: FormBuilderTypeAhead(
-        key: widget.key,
-        controller: _typeAheadController,
+      child: FormBuilderTypeAhead<dynamic>(
+        key: widget.key ?? Key(widget.doctypeField.fieldname),
+        controller: _typeAheadController ?? TextEditingController(),
+        focusNode: FocusNode(),
         onSuggestionSelected: widget.onSuggestionSelected,
         onChanged: (val) {
           if (widget.onControlChanged != null) {
             widget.onControlChanged!(
-              FieldValue(
-                field: widget.doctypeField,
-                value: val,
-              ),
+              FieldValue(field: widget.doctypeField, value: val),
             );
           }
         },
+        onSaved: (val) {},
+        onReset: () {},
+        valueTransformer: (val) => val,
+        loadingBuilder: (context) => const CircularProgressIndicator(),
+        noItemsFoundBuilder: (context) => const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Text('No items found'),
+        ),
         direction: AxisDirection.up,
         validator: FormBuilderValidators.compose(validators),
-        decoration: widget.inputDecoration ??
+        decoration:
+            widget.inputDecoration ??
             Palette.formFieldDecoration(
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  widget.suffixIcon ??
-                      FrappeIcon(
-                        FrappeIcons.select,
-                      ),
-                ],
+                children: [widget.suffixIcon ?? FrappeIcon(FrappeIcons.select)],
               ),
             ),
-        selectionToTextTransformer: widget.selectionToTextTransformer ??
+        selectionToTextTransformer:
+            widget.selectionToTextTransformer ??
             (item) {
               return item.toString();
             },
         name: widget.doctypeField.fieldname,
-        itemBuilder: widget.itemBuilder ??
+        itemBuilder:
+            widget.itemBuilder ??
             (context, item) {
-              return ListTile(
-                title: Text(
-                  item.toString(),
-                ),
-              );
+              return ListTile(title: Text(item.toString()));
             },
         initialValue: widget.doc != null
             ? widget.doc![widget.doctypeField.fieldname]
             : null,
-        suggestionsCallback: widget.suggestionsCallback ??
+        suggestionsCallback:
+            widget.suggestionsCallback ??
             (query) {
               var lowercaseQuery = query.toLowerCase();
               List opts;
@@ -127,13 +131,13 @@ class _AutoCompleteState extends State<AutoComplete>
               } else {
                 opts = widget.doctypeField.options ?? [];
               }
-              return opts
-                  .where(
-                    (option) => option.toLowerCase().contains(
-                          lowercaseQuery,
-                        ),
-                  )
-                  .toList();
+              return Future.value(
+                opts
+                    .where(
+                      (option) => option.toLowerCase().contains(lowercaseQuery),
+                    )
+                    .toList(),
+              );
             },
       ),
     );

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:frappe_app/app/locator.dart';
@@ -23,10 +21,10 @@ class ShareBottomSheetView extends StatelessWidget {
   final List<Shared> shares;
 
   const ShareBottomSheetView({
-    Key key,
-    @required this.doctype,
-    @required this.name,
-    @required this.shares,
+    Key? key,
+    required this.doctype,
+    required this.name,
+    required this.shares,
   }) : super(key: key);
 
   @override
@@ -48,9 +46,7 @@ class ShareBottomSheetView extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border(
-                      top: BorderSide(
-                        color: FrappePalette.grey[200],
-                      ),
+                      top: BorderSide(color: FrappePalette.grey[200]!),
                     ),
                   ),
                   height: 50,
@@ -62,9 +58,7 @@ class ShareBottomSheetView extends StatelessWidget {
                       ),
                       Text(
                         'Choose permission level',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       Spacer(),
                       Padding(
@@ -77,29 +71,25 @@ class ShareBottomSheetView extends StatelessWidget {
                             children: [
                               Text(
                                 model.currentPermission,
-                                style: TextStyle(
-                                  color: FrappePalette.blue,
-                                ),
+                                style: TextStyle(color: FrappePalette.blue),
                               ),
-                              SizedBox(
-                                width: 5,
-                              ),
+                              SizedBox(width: 5),
                               FrappeIcon(
                                 FrappeIcons.down_arrow,
                                 size: 16,
                                 color: FrappePalette.blue,
-                              )
+                              ),
                             ],
                           ),
                           itemBuilder: (context) {
-                            return model.permissionLevels.map(
-                              (permissionLevel) {
-                                return PopupMenuItem(
-                                  child: Text(permissionLevel),
-                                  value: permissionLevel,
-                                );
-                              },
-                            ).toList();
+                            return model.permissionLevels.map((
+                              permissionLevel,
+                            ) {
+                              return PopupMenuItem(
+                                child: Text(permissionLevel),
+                                value: permissionLevel,
+                              );
+                            }).toList();
                           },
                         ),
                       ),
@@ -132,9 +122,7 @@ class ShareBottomSheetView extends StatelessWidget {
             children: [
               FormBuilder(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: MultiSelect(
                     onChanged: (l) {
                       model.updateNewShares(l);
@@ -147,7 +135,7 @@ class ShareBottomSheetView extends StatelessWidget {
                           txt: lowercaseQuery,
                         );
 
-                        return response["results"];
+                        return response["results"] ?? [];
                       } else {
                         return [];
                       }
@@ -159,18 +147,13 @@ class ShareBottomSheetView extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 10,
-              ),
+              SizedBox(height: 10),
               Expanded(
                 child: ListView(
                   shrinkWrap: true,
-                  children: _generateChildren(
-                    model: model,
-                    context: context,
-                  ),
+                  children: _generateChildren(model: model, context: context),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -179,8 +162,8 @@ class ShareBottomSheetView extends StatelessWidget {
   }
 
   List<Widget> _generateChildren({
-    @required ShareBottomSheetViewModel model,
-    BuildContext context,
+    required ShareBottomSheetViewModel model,
+    required BuildContext context,
   }) {
     var allUsers = OfflineStorage.getItem('allUsers');
     allUsers = allUsers["data"];
@@ -209,26 +192,26 @@ class SharedWithUser extends StatelessWidget {
   final String name;
 
   const SharedWithUser({
-    Key key,
-    this.user,
-    this.share,
-    this.model,
-    this.doctype,
-    this.name,
+    Key? key,
+    required this.user,
+    required this.share,
+    required this.model,
+    required this.doctype,
+    required this.name,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     String title;
-    String subtitle;
-    String userPermission;
+    String? subtitle;
+    String? userPermission;
 
     if (user != null) {
-      title = user["full_name"];
+      title = user!["full_name"] ?? "Unknown";
     } else if (share.user == null && share.everyone == 1) {
       title = "Everyone";
     } else {
-      title = share.user;
+      title = share.user ?? "Unknown";
     }
 
     if (user != null) {
@@ -245,27 +228,19 @@ class SharedWithUser extends StatelessWidget {
       userPermission = "Can Read";
     }
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 5,
-      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 5),
       visualDensity: VisualDensity(horizontal: 0, vertical: -4),
-      leading: UserAvatar(
-        uid: share.user ?? "E",
-      ),
-      title: Text(
-        title,
-      ),
-      subtitle: Text(
-        subtitle ?? "",
-      ),
+      leading: UserAvatar(uid: share.user ?? "E"),
+      title: Text(title),
+      subtitle: Text(subtitle ?? ""),
       trailing: PopupMenuButton(
         onSelected: (permission) {
           model.updatePermission(
-            currentPermission: userPermission,
-            newPermission: permission,
+            currentPermission: userPermission ?? '',
+            newPermission: permission as String,
             doctype: doctype,
             name: name,
-            user: share.user,
+            user: share.user ?? '',
           );
         },
         child: Container(
@@ -275,31 +250,25 @@ class SharedWithUser extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                userPermission,
-                style: TextStyle(
-                  color: FrappePalette.grey[600],
-                ),
+                userPermission ?? '',
+                style: TextStyle(color: FrappePalette.grey[600]),
               ),
-              SizedBox(
-                width: 5,
-              ),
+              SizedBox(width: 5),
               FrappeIcon(
                 FrappeIcons.down_arrow,
                 size: 16,
                 color: FrappePalette.grey[600],
-              )
+              ),
             ],
           ),
         ),
         itemBuilder: (context) {
-          return model.permissionLevels.map(
-            (permissionLevel) {
-              return PopupMenuItem(
-                child: Text(permissionLevel),
-                value: permissionLevel,
-              );
-            },
-          ).toList();
+          return model.permissionLevels.map((permissionLevel) {
+            return PopupMenuItem(
+              child: Text(permissionLevel),
+              value: permissionLevel,
+            );
+          }).toList();
         },
       ),
     );

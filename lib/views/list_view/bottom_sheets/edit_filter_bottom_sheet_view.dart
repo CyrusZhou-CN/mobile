@@ -1,4 +1,3 @@
-// @dart=2.9
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:frappe_app/config/frappe_icons.dart';
@@ -16,14 +15,14 @@ import 'package:frappe_app/widgets/frappe_bottom_sheet.dart';
 
 class EditFilterBottomSheetView extends StatelessWidget {
   final int page;
-  final List<DoctypeField> fields;
-  final Filter filter;
+  final List<DoctypeField>? fields;
+  final Filter? filter;
 
   const EditFilterBottomSheetView({
-    @required this.page,
+    required this.page,
     this.fields,
     this.filter,
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -34,13 +33,16 @@ class EditFilterBottomSheetView extends StatelessWidget {
         model.filter = filter;
       },
       builder: (context, model, child) {
-        Widget widget;
+        Widget widget = Container(); // 默认值
         if (model.pageNumber == 1) {
           widget = SelectFilterField(
-            fields: fields,
+            fields: fields ?? [],
             model: model,
             onActionButtonPress: () {
               model.moveToPage(2);
+            },
+            leadingOnPressed: () {
+              Navigator.of(context).pop();
             },
           );
         } else if (model.pageNumber == 2) {
@@ -59,31 +61,28 @@ class EditFilterBottomSheetView extends StatelessWidget {
             leadingOnPressed: () {
               model.moveToPage(2);
             },
-            onActionButtonPress: (Filter filter) {
+            onActionButtonPress: (filter) {
               Navigator.of(context).pop(filter);
             },
           );
         }
-        return FractionallySizedBox(
-          heightFactor: 0.55,
-          child: widget,
-        );
+        return FractionallySizedBox(heightFactor: 0.55, child: widget);
       },
     );
   }
 }
 
 class SelectFilterField extends StatelessWidget {
-  final Function onActionButtonPress;
-  final Function leadingOnPressed;
+  final VoidCallback onActionButtonPress;
+  final VoidCallback leadingOnPressed;
   final List<DoctypeField> fields;
   final EditFilterBottomSheetViewModel model;
 
   SelectFilterField({
-    this.onActionButtonPress,
-    this.leadingOnPressed,
-    @required this.fields,
-    @required this.model,
+    required this.onActionButtonPress,
+    required this.leadingOnPressed,
+    required this.fields,
+    required this.model,
   });
 
   @override
@@ -91,70 +90,63 @@ class SelectFilterField extends StatelessWidget {
     return FrappeBottomSheet(
       title: 'Choose filter field',
       trailing: Text(
-        model.filter.isInit ? 'Next' : 'Done',
-        style: TextStyle(
-          color: FrappePalette.blue[500],
-        ),
+        model.filter?.isInit == true ? 'Next' : 'Done',
+        style: TextStyle(color: FrappePalette.blue[500]),
       ),
       onActionButtonPress: () {
-        if (model.filter.isInit) {
+        if (model.filter?.isInit == true) {
           model.moveToPage(2);
         } else {
           Navigator.of(context).pop(model.filter);
         }
       },
       body: ListView(
-          children: fields.map((field) {
-        return Container(
-          color: field.fieldname == model.filter.field.fieldname
-              ? FrappePalette.grey[100]
-              : null,
-          child: ListTile(
-            onTap: () {
-              model.updateFieldName(field);
-            },
-            visualDensity: VisualDensity(vertical: -4),
-            title: Text(
-              field.label,
-              style: TextStyle(
-                color: FrappePalette.grey[700],
+        children: fields.map((field) {
+          return Container(
+            color: field.fieldname == model.filter?.field.fieldname
+                ? FrappePalette.grey[100]
+                : null,
+            child: ListTile(
+              onTap: () {
+                model.updateFieldName(field);
+                onActionButtonPress();
+              },
+              visualDensity: VisualDensity(vertical: -4),
+              title: Text(
+                field.label ?? '',
+                style: TextStyle(color: FrappePalette.grey[700]),
               ),
+              trailing: FrappeIcon(FrappeIcons.arrow_right, size: 18),
             ),
-            trailing: FrappeIcon(
-              FrappeIcons.arrow_right,
-              size: 18,
-            ),
-          ),
-        );
-      }).toList()),
+          );
+        }).toList(),
+      ),
     );
   }
 }
 
 class SelectFilterOperator extends StatelessWidget {
-  final Function onActionButtonPress;
-  final Function leadingOnPressed;
+  final VoidCallback onActionButtonPress;
+  final VoidCallback leadingOnPressed;
   final EditFilterBottomSheetViewModel model;
 
   SelectFilterOperator({
-    this.onActionButtonPress,
-    this.leadingOnPressed,
-    this.model,
+    required this.onActionButtonPress,
+    required this.leadingOnPressed,
+    required this.model,
   });
 
   @override
   Widget build(BuildContext context) {
     return FrappeBottomSheet(
       trailing: Text(
-        model.filter.isInit ? 'Next' : 'Done',
-        style: TextStyle(
-          color: FrappePalette.blue[500],
-        ),
+        model.filter?.isInit == true ? 'Next' : 'Done',
+        style: TextStyle(color: FrappePalette.blue[500]),
       ),
-      leadingOnPressed: model.filter.isInit ? leadingOnPressed : null,
-      leadingText: model.filter.isInit ? "Back" : null,
+      leadingOnPressed: model.filter?.isInit == true ? leadingOnPressed : null,
+      leadingText: model.filter?.isInit == true ? "Back" : null,
       onActionButtonPress: () {
-        if (model.filter.isInit) {
+        if (model.filter?.isInit == true) {
           model.moveToPage(3);
         } else {
           Navigator.of(context).pop(model.filter);
@@ -162,61 +154,58 @@ class SelectFilterOperator extends StatelessWidget {
       },
       title: 'Choose filter operator',
       body: ListView(
-          children: Constants.filterOperators.where((opt) {
-        if (model.filter.field.fieldtype == "Check") {
-          if (opt.label == "Equals") {
-            return true;
-          } else {
-            return false;
-          }
-        } else if (model.filter.field.fieldname == "_assign" ||
-            model.filter.field.fieldname == "owner") {
-          if (opt.label == "Like") {
-            return true;
-          } else {
-            return false;
-          }
-        } else {
-          return true;
-        }
-      }).map(
-        (opt) {
-          return Container(
-            color: opt == model.filter.filterOperator
-                ? FrappePalette.grey[100]
-                : null,
-            child: ListTile(
-              onTap: () {
-                model.updateFilterOperator(opt);
-              },
-              visualDensity: VisualDensity(vertical: -4),
-              title: Text(
-                opt.label,
-                style: TextStyle(
-                  color: FrappePalette.grey[700],
+        children: Constants.filterOperators
+            .where((opt) {
+              if (model.filter?.field?.fieldtype == "Check") {
+                if (opt.label == "Equals") {
+                  return true;
+                } else {
+                  return false;
+                }
+              } else if (model.filter?.field?.fieldname == "_assign" ||
+                  model.filter?.field?.fieldname == "owner") {
+                if (opt.label == "Like") {
+                  return true;
+                } else {
+                  return false;
+                }
+              } else {
+                return true;
+              }
+            })
+            .map((opt) {
+              return Container(
+                color: opt == model.filter?.filterOperator
+                    ? FrappePalette.grey[100]
+                    : null,
+                child: ListTile(
+                  onTap: () {
+                    model.updateFilterOperator(opt);
+                  },
+                  visualDensity: VisualDensity(vertical: -4),
+                  title: Text(
+                    opt.label,
+                    style: TextStyle(color: FrappePalette.grey[700]),
+                  ),
+                  trailing: FrappeIcon(FrappeIcons.arrow_right, size: 18),
                 ),
-              ),
-              trailing: FrappeIcon(
-                FrappeIcons.arrow_right,
-                size: 18,
-              ),
-            ),
-          );
-        },
-      ).toList()),
+              );
+            })
+            .toList(),
+      ),
     );
   }
 }
 
 class EditValue extends StatefulWidget {
-  final Function onActionButtonPress;
-  final Function leadingOnPressed;
+  final void Function(dynamic) onActionButtonPress;
+  final VoidCallback leadingOnPressed;
   final EditFilterBottomSheetViewModel model;
 
   EditValue({
-    this.onActionButtonPress,
-    this.leadingOnPressed,
-    this.model,
+    required this.onActionButtonPress,
+    required this.leadingOnPressed,
+    required this.model,
   });
 
   @override
@@ -229,45 +218,50 @@ class _EditValueState extends State<EditValue> {
   Widget build(BuildContext context) {
     return FrappeBottomSheet(
       title: 'Edit Value',
-      leadingText: widget.model.filter.isInit ? 'Back' : null,
-      leadingOnPressed:
-          widget.model.filter.isInit ? widget.leadingOnPressed : null,
-      trailing: Text(
-        'Done',
-        style: TextStyle(
-          color: FrappePalette.blue[500],
-        ),
-      ),
+      leadingText: widget.model.filter?.isInit == true ? 'Back' : null,
+      leadingOnPressed: widget.model.filter?.isInit == true
+          ? widget.leadingOnPressed
+          : null,
+      trailing: Text('Done', style: TextStyle(color: FrappePalette.blue[500])),
       onActionButtonPress: () {
-        _fbKey.currentState.save();
-        var v = _fbKey.currentState.value[widget.model.filter.field.fieldname];
+        _fbKey.currentState?.save();
+        var v =
+            _fbKey.currentState?.value[widget.model.filter?.field?.fieldname];
         widget.model.updateValue(v);
-        widget.onActionButtonPress(widget.model.filter);
+        if (widget.model.filter != null) {
+          widget.onActionButtonPress(widget.model.filter!);
+        }
       },
       body: Column(
         children: [
           FormBuilder(
             key: _fbKey,
-            child: Builder(builder: (context) {
-              if (widget.model.filter.field.fieldtype == "Check") {
-                widget.model.filter.field.options = ["Yes", "No"];
-                return Select(
-                  doctypeField: widget.model.filter.field,
-                  doc: {
-                    "${widget.model.filter.field.fieldname}":
-                        widget.model.filter.value
-                  },
-                );
-              } else {
-                return makeControl(
-                  field: widget.model.filter.field,
-                  doc: {
-                    widget.model.filter.field.fieldname: "",
-                  },
-                );
-              }
-            }),
-          )
+            child: Builder(
+              builder: (context) {
+                if (widget.model.filter?.field?.fieldtype == "Check") {
+                  if (widget.model.filter?.field != null) {
+                    widget.model.filter!.field!.options = ["Yes", "No"];
+                  }
+                  return Select(
+                    doctypeField:
+                        widget.model.filter?.field ??
+                        DoctypeField(fieldname: '', label: ''),
+                    doc: {
+                      "${widget.model.filter?.field?.fieldname ?? ''}":
+                          widget.model.filter?.value,
+                    },
+                  );
+                } else {
+                  return makeControl(
+                    field:
+                        widget.model.filter?.field ??
+                        DoctypeField(fieldname: '', label: ''),
+                    doc: {widget.model.filter?.field?.fieldname ?? '': ""},
+                  );
+                }
+              },
+            ),
+          ),
         ],
       ),
     );

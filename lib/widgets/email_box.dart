@@ -50,22 +50,16 @@ class _EmailBoxState extends State<EmailBox> {
 
     var time = timeago.format(DateTime.parse(widget.data.creation));
     var attachments = (json.decode(widget.data.attachments) as List)
-        .map(
-          (attachment) => Attachments.fromJson(
-            attachment,
-          ),
-        )
+        .map((attachment) => Attachments.fromJson(attachment))
         .toList();
 
     return Padding(
       padding: const EdgeInsets.only(left: 3.0),
       child: GestureDetector(
         onTap: () {
-          setState(
-            () {
-              _isExpanded = !_isExpanded;
-            },
-          );
+          setState(() {
+            _isExpanded = !_isExpanded;
+          });
         },
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -80,33 +74,21 @@ class _EmailBoxState extends State<EmailBox> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ListTile(
-                  leading: UserAvatar(
-                    uid: widget.data.sender,
-                  ),
+                  leading: UserAvatar(uid: widget.data.sender),
                   title: Row(
                     children: [
-                      Flexible(
-                        child: Text(
-                          widget.data.senderFullName,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
+                      Flexible(child: Text(widget.data.senderFullName)),
+                      SizedBox(width: 10),
                       if (widget.data.deliveryStatus != "")
                         widget.data.deliveryStatus == "Sent"
-                            ? FrappeIcon(
-                                FrappeIcons.unread_status,
-                              )
+                            ? FrappeIcon(FrappeIcons.unread_status)
                             : FrappeIcon(
                                 FrappeIcons.read_status,
                                 color: FrappePalette.blue,
                               ),
                     ],
                   ),
-                  subtitle: Text(
-                    time,
-                  ),
+                  subtitle: Text(time),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -128,16 +110,12 @@ class _EmailBoxState extends State<EmailBox> {
                           size: 18,
                         ),
                       ),
-                      SizedBox(
-                        width: 11,
-                      ),
+                      SizedBox(width: 11),
                       GestureDetector(
                         onTap: () {
                           widget.onReplyAll();
                         },
-                        child: FrappeIcon(
-                          FrappeIcons.reply_all,
-                        ),
+                        child: FrappeIcon(FrappeIcons.reply_all),
                       ),
                       // SizedBox(
                       //   width: 11,
@@ -156,8 +134,9 @@ class _EmailBoxState extends State<EmailBox> {
                       itemCount: attachments.length,
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) {
-                        var fileName =
-                            attachments[index].fileUrl.split("/").last;
+                        var fileName = attachments[index].fileUrl
+                            .split("/")
+                            .last;
                         var extension = fileName.split('.').last;
 
                         return InkWell(
@@ -172,34 +151,29 @@ class _EmailBoxState extends State<EmailBox> {
                               OpenFile.open(filePath);
                             } else {
                               downloadFile(
-                                  attachments[index].fileUrl, downloadPath);
+                                attachments[index].fileUrl,
+                                downloadPath,
+                              );
                             }
                           },
                           child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 12),
                             child: Container(
                               width: 162,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
-                                border:
-                                    Border.all(color: FrappePalette.grey[200]!),
+                                border: Border.all(
+                                  color: FrappePalette.grey[200]!,
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  SizedBox(
-                                    width: 10,
-                                  ),
+                                  SizedBox(width: 10),
                                   CircleAvatar(
                                     backgroundColor: FrappePalette.grey[100],
-                                    child: FrappeIcon(
-                                      FrappeIcons.small_file,
-                                    ),
+                                    child: FrappeIcon(FrappeIcons.small_file),
                                   ),
-                                  SizedBox(
-                                    width: 8,
-                                  ),
+                                  SizedBox(width: 8),
                                   Flexible(
                                     child: Column(
                                       mainAxisAlignment:
@@ -226,9 +200,7 @@ class _EmailBoxState extends State<EmailBox> {
                                       ],
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
+                                  SizedBox(width: 10),
                                 ],
                               ),
                             ),
@@ -245,15 +217,10 @@ class _EmailBoxState extends State<EmailBox> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.white,
-                          _isExpanded ? Colors.white : Colors.white10
+                          _isExpanded ? Colors.white : Colors.white10,
                         ],
                       ).createShader(
-                        Rect.fromLTRB(
-                          0,
-                          0,
-                          rect.width,
-                          rect.height,
-                        ),
+                        Rect.fromLTRB(0, 0, rect.width, rect.height),
                       );
                     },
                     child: Container(
@@ -261,85 +228,11 @@ class _EmailBoxState extends State<EmailBox> {
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Html(
                         data: message,
-                        customRender: {
-                          "img": (renderContext, child) {
-                            var src = renderContext.tree.attributes['src'];
-                            if (src != null) {
-                              if (!src.startsWith("http")) {
-                                src = Config().baseUrl! + src;
-                              }
-                              return GestureDetector(
-                                onTap: () => Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => Scaffold(
-                                      appBar: AppBar(
-                                        elevation: 0.8,
-                                      ),
-                                      body: PhotoView(
-                                        imageProvider: NetworkImage(
-                                          src!,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                child: Image.network(
-                                  src,
-                                  headers: {
-                                    HttpHeaders.cookieHeader:
-                                        DioHelper.cookies!,
-                                  },
-                                ),
-                              );
-                            }
-                          },
-                        },
-                        customImageRenders: {
-                          networkSourceMatcher(domains: [
-                            Config().baseUrl!,
-                          ]): networkImageRender(
-                            headers: {
-                              HttpHeaders.cookieHeader: DioHelper.cookies!,
-                            },
-                            altWidget: (alt) => Text(alt ?? ""),
-                            loadingWidget: () => Text("Loading..."),
-                          ),
-                          // for relative paths, prefix with a base url
-                          (attr, _) =>
-                                  attr["src"] != null &&
-                                  !attr["src"]!.startsWith("http"):
-                              networkImageRender(
-                            headers: {
-                              HttpHeaders.cookieHeader: DioHelper.cookies!,
-                            },
-                            mapUrl: (url) => Config().baseUrl! + url!,
-                          ),
-                          // Custom placeholder image for broken links
-                          networkSourceMatcher(): networkImageRender(
-                              altWidget: (_) => FrappeLogo()),
-                        },
-                        onLinkTap: (url, _, __, ___) async {
-                          print("Opening $url...");
-                          if (url != null) {
-                            if (await canLaunch(url)) {
-                              await launch(
-                                url,
-                                headers: {
-                                  HttpHeaders.cookieHeader: DioHelper.cookies!,
-                                },
-                              );
-                            } else {
-                              throw 'Could not launch $url';
-                            }
-                          }
-                        },
+                        // flutter_html 3.0 removed customRender, customImageRenders, and onLinkTap
                       ),
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

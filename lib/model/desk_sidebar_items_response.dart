@@ -4,8 +4,8 @@ class DeskSidebarItemsResponse {
   DeskSidebarItemsResponse({required this.message});
 
   DeskSidebarItemsResponse.fromJson(Map<dynamic, dynamic> json) {
+    message = [];
     if (json['message'] != null) {
-      message = [];
       json['message'].forEach((v) {
         message.add(new DeskMessage.fromJson(v));
       });

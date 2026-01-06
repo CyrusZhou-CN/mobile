@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_html/image_render.dart';
+// import 'package:flutter_html/image_render.dart'; // Not available in flutter_html 3.0
 import 'package:frappe_app/config/palette.dart';
 import 'package:frappe_app/model/config.dart';
 import 'package:frappe_app/utils/dio_helper.dart';
@@ -25,104 +25,55 @@ class FormBuilderTextEditor<T> extends FormBuilderField<T> {
     Color? color,
     bool fullHeight = false,
   }) : super(
-          key: key,
-          initialValue: initialValue,
-          name: name,
-          validator: validator,
-          builder: (FormFieldState<dynamic> field) {
-            final state = field as _FormBuilderTextEditorState<T>;
-            return InkWell(
-              onTap: !state.enabled
-                  ? null
-                  : () async {
-                      var v = await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return EditText(
-                                  data: field.value as String,
-                                );
-                              },
-                            ),
-                          ) ??
-                          null;
+         key: key,
+         initialValue: initialValue,
+         name: name,
+         validator: validator,
+         builder: (FormFieldState<dynamic> field) {
+           final state = field as _FormBuilderTextEditorState<T>;
+           return InkWell(
+             onTap: !state.enabled
+                 ? null
+                 : () async {
+                     var v =
+                         await Navigator.of(context).push(
+                           MaterialPageRoute(
+                             builder: (context) {
+                               return EditText(data: field.value as String);
+                             },
+                           ),
+                         ) ??
+                         null;
 
-                      if (v != null) {
-                        field.didChange(v);
-                      }
-                    },
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight:
-                      fullHeight ? MediaQuery.of(context).size.height : 200,
-                  minHeight:
-                      fullHeight ? MediaQuery.of(context).size.height : 100,
-                  minWidth: double.infinity,
-                ),
-                child: Container(
-                  color: color ?? Palette.fieldBgColor,
-                  child: SingleChildScrollView(
-                    child: field.value != null
-                        ? Html(
-                            data: field.value as String,
-                            customRender: {
-                              "img": (renderContext, child) {
-                                var src = renderContext.tree.attributes['src'];
-                                if (src != null) {
-                                  if (!src.startsWith("http")) {
-                                    src = Config().baseUrl! + src;
-                                  }
-                                  return Image.network(
-                                    src,
-                                    headers: {
-                                      HttpHeaders.cookieHeader:
-                                          DioHelper.cookies!,
-                                    },
-                                  );
-                                }
-                              },
-                            },
-                            customImageRenders: {
-                              networkSourceMatcher(domains: [
-                                Config().baseUrl!,
-                              ]): networkImageRender(
-                                headers: {
-                                  HttpHeaders.cookieHeader: DioHelper.cookies!,
-                                },
-                                altWidget: (alt) => Text(alt ?? ""),
-                                loadingWidget: () => Text("Loading..."),
-                              ),
-                              // for relative paths, prefix with a base url
-                              (attr, _) =>
-                                      attr["src"] != null &&
-                                      !(attr["src"]!.startsWith("http") ||
-                                          attr["src"]!.startsWith("https")):
-                                  networkImageRender(
-                                headers: {
-                                  HttpHeaders.cookieHeader: DioHelper.cookies!,
-                                },
-                                mapUrl: (url) => Config().baseUrl! + url!,
-                              ),
-                              // Custom placeholder image for broken links
-                              networkSourceMatcher(): networkImageRender(
-                                  altWidget: (_) => FrappeLogo()),
-                            },
-                            onLinkTap: (url, _, __, ___) {
-                              print("Opening $url...");
-                            },
-                            onImageTap: (src, _, __, ___) {
-                              print(src);
-                            },
-                            onImageError: (exception, stackTrace) {
-                              print(exception);
-                            },
-                          )
-                        : Container(),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
+                     if (v != null) {
+                       field.didChange(v);
+                     }
+                   },
+             child: ConstrainedBox(
+               constraints: BoxConstraints(
+                 maxHeight: fullHeight
+                     ? MediaQuery.of(context).size.height
+                     : 200,
+                 minHeight: fullHeight
+                     ? MediaQuery.of(context).size.height
+                     : 100,
+                 minWidth: double.infinity,
+               ),
+               child: Container(
+                 color: color ?? Palette.fieldBgColor,
+                 child: SingleChildScrollView(
+                   child: field.value != null
+                       ? Html(
+                           data: field.value as String,
+                           // flutter_html 3.0 removed customRender, customImageRenders, onLinkTap, onImageTap, and onImageError
+                         )
+                       : Container(),
+                 ),
+               ),
+             ),
+           );
+         },
+       );
 
   @override
   _FormBuilderTextEditorState<T> createState() =>
@@ -135,9 +86,7 @@ class _FormBuilderTextEditorState<T>
 class EditText extends StatefulWidget {
   final String? data;
 
-  EditText({
-    required this.data,
-  });
+  EditText({required this.data});
 
   @override
   _EditTextState createState() => _EditTextState();
@@ -165,10 +114,7 @@ class _EditTextState extends State<EditText> {
         elevation: 0.8,
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 12.0,
-              horizontal: 8,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8),
             child: FrappeFlatButton(
               onPressed: () async {
                 var txt = await controller.getText();
@@ -201,9 +147,7 @@ class _EditTextState extends State<EditText> {
                     superscript: false,
                   ),
                   ColorButtons(),
-                  ListButtons(
-                    listStyles: false,
-                  ),
+                  ListButtons(listStyles: false),
                   ParagraphButtons(
                     alignCenter: false,
                     alignJustify: false,
@@ -213,11 +157,7 @@ class _EditTextState extends State<EditText> {
                     caseConverter: false,
                     lineHeight: false,
                   ),
-                  InsertButtons(
-                    audio: false,
-                    video: false,
-                    hr: false,
-                  ),
+                  InsertButtons(audio: false, video: false, hr: false),
                 ],
               ),
               otherOptions: OtherOptions(

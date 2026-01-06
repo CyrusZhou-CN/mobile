@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:frappe_app/model/common.dart';
 import 'package:frappe_app/model/get_doc_response.dart';
-import 'package:frappe_app/model/get_versions_response.dart';
-import 'package:frappe_app/model/group_by_count_response.dart';
+import 'package:frappe_app/model/get_versions_response.dart' as get_versions;
+import 'package:frappe_app/model/group_by_count_response.dart' as group_by;
 import 'package:frappe_app/model/login_request.dart';
 import 'package:frappe_app/model/system_settings_response.dart';
 import 'package:frappe_app/model/upload_file_response.dart';
@@ -13,25 +13,19 @@ import '../../model/desk_sidebar_items_response.dart';
 import '../../model/login_response.dart';
 
 abstract class Api {
-  Future<LoginResponse> login(
-    LoginRequest loginRequest,
-  );
+  Future<LoginResponse> login(LoginRequest loginRequest);
 
   Future<DeskSidebarItemsResponse> getDeskSideBarItems();
 
-  Future<DesktopPageResponse> getDesktopPage(
-    String module,
-  );
+  Future<DesktopPageResponse> getDesktopPage(String module);
 
-  Future<DoctypeResponse> getDoctype(
-    String doctype,
-  );
+  Future<DoctypeResponse> getDoctype(String doctype);
 
   Future<List> fetchList({
-    @required List fieldnames,
-    @required String doctype,
-    @required DoctypeDoc meta,
-    @required String orderBy,
+    required List fieldnames,
+    required String doctype,
+    required DoctypeDoc meta,
+    required String orderBy,
     List filters,
     int pageLength,
     int offset,
@@ -47,13 +41,13 @@ abstract class Api {
   );
 
   Future sendEmail({
-    @required recipients,
+    required recipients,
     cc,
     bcc,
-    @required subject,
-    @required content,
-    @required doctype,
-    @required doctypeName,
+    required subject,
+    required content,
+    required doctype,
+    required doctypeName,
     sendEmail,
     printHtml,
     sendMeACopy,
@@ -70,18 +64,14 @@ abstract class Api {
 
   Future getDocinfo(String doctype, String name);
 
-  Future removeAttachment(
-    String doctype,
-    String name,
-    String attachmentName,
-  );
+  Future removeAttachment(String doctype, String name, String attachmentName);
 
   Future deleteComment(String name);
 
   Future<List<UploadedFile>> uploadFiles({
-    @required String doctype,
-    @required String name,
-    @required List<FrappeFile> files,
+    required String doctype,
+    required String name,
+    required List<FrappeFile> files,
   });
 
   Future saveDocs(String doctype, Map formValue);
@@ -104,22 +94,19 @@ abstract class Api {
   Future addReview(String doctype, String name, Map reviewData);
 
   Future setPermission({
-    @required String doctype,
-    @required String name,
-    @required Map shareInfo,
-    @required String user,
+    required String doctype,
+    required String name,
+    required Map shareInfo,
+    required String user,
   });
 
   Future shareAdd(String doctype, String name, Map shareInfo);
 
-  Future shareGetUsers({
-    @required String doctype,
-    @required String name,
-  });
+  Future shareGetUsers({required String doctype, required String name});
 
   Future<Map> getContactList(String query);
 
-  Future<GroupByCountResponse> getGroupByCount({
+  Future<group_by.GroupByCountResponse> getGroupByCount({
     required String doctype,
     required List currentFilters,
     required String field,
@@ -133,7 +120,9 @@ abstract class Api {
 
   Future<SystemSettingsResponse> getSystemSettings();
 
-  Future<GetVersionsResponse> getVersions();
+  Future<List> getLanguages();
+
+  Future<get_versions.GetVersionsResponse> getVersions();
 
   Future<List> getList({
     required List fields,

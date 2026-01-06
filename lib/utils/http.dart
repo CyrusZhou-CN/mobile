@@ -25,7 +25,7 @@ Future<void> cacheAllUsers() async {
     ];
 
     var filters = [
-      ["User", "enabled", "=", 1]
+      ["User", "enabled", "=", 1],
     ];
 
     try {
@@ -40,11 +40,9 @@ Future<void> cacheAllUsers() async {
       );
 
       var usr = {};
-      res.forEach(
-        (element) {
-          usr[element["name"]] = element;
-        },
-      );
+      res.forEach((element) {
+        usr[element["name"]] = element;
+      });
       OfflineStorage.putItem('allUsers', usr);
     } catch (e) {
       throw e;
@@ -53,11 +51,30 @@ Future<void> cacheAllUsers() async {
 }
 
 Future<void> setBaseUrl(url) async {
-  if (!url.startsWith('https://')) {
-    url = "https://$url";
+  print('setBaseUrl called with: $url');
+
+  // If URL already has a protocol, use it as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    print('URL already has protocol: $url');
+  } else {
+    // If no protocol specified, use http for localhost/IP addresses, https for others
+    if (url.startsWith('localhost') ||
+        url.startsWith('127.0.0.1') ||
+        RegExp(r'^\d+\.\d+\.\d+\.\d+').hasMatch(url)) {
+      url = "http://$url";
+      print('Added http:// prefix for local address: $url');
+    } else {
+      url = "https://$url";
+      print('Added https:// prefix for remote address: $url');
+    }
   }
+
   await Config.set('baseUrl', url);
+  print('Config baseUrl set to: $url');
   await DioHelper.init(url);
+  print(
+    'DioHelper initialized with baseUrl: ${DioHelper.dio?.options.baseUrl}',
+  );
 }
 
 String getAbsoluteUrl(String url) {

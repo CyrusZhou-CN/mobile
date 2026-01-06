@@ -21,11 +21,7 @@ class Date extends StatelessWidget with Control, ControlInput {
   final Key? key;
   final Map? doc;
 
-  const Date({
-    this.key,
-    required this.doctypeField,
-    this.doc,
-  });
+  const Date({this.key, required this.doctypeField, this.doc});
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +30,14 @@ class Date extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(
-        f(context),
-      );
+      validators.add(f);
     }
 
     var systemSettings = jsonDecode(
-      jsonEncode(
-        OfflineStorage.getItem("systemSettings")["data"],
-      ),
+      jsonEncode(OfflineStorage.getItem("systemSettings")["data"]),
     );
+
+    print('System settings from OfflineStorage: $systemSettings');
 
     var dateFormat = systemSettings != null
         ? SystemSettingsResponse.fromJson(
@@ -51,22 +45,21 @@ class Date extends StatelessWidget with Control, ControlInput {
           ).message.defaults.dateFormat
         : "dd-mm-yyyy";
 
+    print('Using date format: $dateFormat');
+
     return FormBuilderDateTimePicker(
       key: key,
       inputType: InputType.date,
       valueTransformer: (val) {
         return val?.toIso8601String();
       },
-      format: DateFormat(
-        Constants.frappeFlutterDateFormatMapping[dateFormat],
-      ),
-      initialValue:
-          doc != null ? parseDate(doc![doctypeField.fieldname]) : null,
+      format: DateFormat(Constants.frappeFlutterDateFormatMapping[dateFormat]),
+      initialValue: doc != null
+          ? parseDate(doc![doctypeField.fieldname])
+          : null,
       keyboardType: TextInputType.number,
       name: doctypeField.fieldname,
-      decoration: Palette.formFieldDecoration(
-        label: doctypeField.label,
-      ),
+      decoration: Palette.formFieldDecoration(label: doctypeField.label),
       validator: FormBuilderValidators.compose(validators),
     );
   }

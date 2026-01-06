@@ -1,4 +1,4 @@
-class Control {
+mixin Control {
   int toggle(bool show) {
     return show ? 0 : 1;
     // refresh();

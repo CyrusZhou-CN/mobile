@@ -32,10 +32,7 @@ class CustomListView extends StatelessWidget {
   final DoctypeResponse meta;
   final String module;
 
-  CustomListView({
-    required this.meta,
-    required this.module,
-  });
+  CustomListView({required this.meta, required this.module});
 
   @override
   Widget build(BuildContext context) {
@@ -52,40 +49,36 @@ class CustomListView extends StatelessWidget {
         model.filters.clear();
       },
       builder: (context, model, child) => model.state == ViewState.busy
-          ? Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            )
+          ? Scaffold(body: Center(child: CircularProgressIndicator()))
           : model.hasError
-              ? handleError(
-                  error: model.error,
-                  context: context,
-                  onRetry: () {
-                    model.meta = meta;
-                    model.getData();
-                    model.getDesktopPage(meta.docs[0].module);
-                  },
-                )
-              : RefreshIndicator(
-                  onRefresh: () {
-                    return Future.value(model.refresh());
-                  },
-                  child: Scaffold(
-                    floatingActionButtonLocation:
-                        FloatingActionButtonLocation.centerFloat,
-                    floatingActionButton: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AddFilterButton(
-                          appliedFilters: model.filters.length,
-                          onPressed: () async {
-                            var fields = model.getFilterableFields(
-                              meta.docs[0].fields,
-                            );
+          ? handleError(
+              error: model.error!,
+              context: context,
+              onRetry: () {
+                model.meta = meta;
+                model.getData();
+                model.getDesktopPage(meta.docs[0].module);
+              },
+            )
+          : RefreshIndicator(
+              onRefresh: () {
+                return Future.value(model.refresh());
+              },
+              child: Scaffold(
+                floatingActionButtonLocation:
+                    FloatingActionButtonLocation.centerFloat,
+                floatingActionButton: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AddFilterButton(
+                      appliedFilters: model.filters.length,
+                      onPressed: () async {
+                        var fields = model.getFilterableFields(
+                          meta.docs[0].fields,
+                        );
 
-                            List<Filter> appliedFilters =
-                                await showModalBottomSheet(
+                        List<Filter> appliedFilters =
+                            await showModalBottomSheet(
                               useRootNavigator: true,
                               context: context,
                               isScrollControlled: true,
@@ -95,105 +88,104 @@ class CustomListView extends StatelessWidget {
                               ),
                             );
 
-                            model.applyFilters(appliedFilters);
-                          },
-                        ),
-                        SizedBox(
-                          width: 8,
-                        ),
-                        SortByButton(
-                          sortOrder: model.sortOrder,
-                          onPressed: () async {
-                            var sort = await showModalBottomSheet(
-                              context: context,
-                              useRootNavigator: true,
-                              isScrollControlled: true,
-                              builder: (context) => SortByFieldsBottomSheetView(
-                                fields: model.sortableFields,
-                                selectedField: model.sortField,
-                              ),
-                            ) as Map?;
-
-                            if (sort != null) {
-                              model.updateSort(sort);
-                            }
-                          },
-                          sortField: model.sortField.label!,
-                        ),
-                      ],
-                    ),
-                    appBar: buildAppBar(
-                      title: model.meta.docs[0].name,
-                      onPressed: () {
-                        NavigationHelper.push(
-                          context: context,
-                          page: ShowSiblingDoctypes(
-                            model: model,
-                            title: model.meta.docs[0].name,
-                          ),
-                        );
+                        model.applyFilters(appliedFilters);
                       },
-                      actions: <Widget>[
-                        _newDoc(context),
-                      ],
                     ),
-                    body: Container(
-                      color: Palette.bgColor,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (model.filters.isNotEmpty)
-                            Container(
-                              height: 50,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: model.filters.length,
-                                itemBuilder: (context, index) {
-                                  var filter = model.filters[index];
-                                  var txt =
-                                      "${filter.field.label} ${filter.filterOperator.label} ${filter.value}";
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                      vertical: 10,
-                                    ),
-                                    child: InputChip(
-                                      label: Text(
-                                        txt,
-                                        style: TextStyle(fontSize: 12),
+                    SizedBox(width: 8),
+                    SortByButton(
+                      sortOrder: model.sortOrder,
+                      onPressed: () async {
+                        var sort =
+                            await showModalBottomSheet(
+                                  context: context,
+                                  useRootNavigator: true,
+                                  isScrollControlled: true,
+                                  builder: (context) =>
+                                      SortByFieldsBottomSheetView(
+                                        fields: model.sortableFields,
+                                        selectedField: model.sortField,
                                       ),
-                                      deleteIcon: FrappeIcon(
-                                        FrappeIcons.close_alt,
-                                        size: 14,
-                                      ),
-                                      backgroundColor: FrappePalette.grey[200],
-                                      shape: BeveledRectangleBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(6),
-                                        ),
-                                      ),
-                                      onDeleted: () {
-                                        model.removeFilter(index);
-                                      },
-                                      materialTapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          Expanded(
-                            child: _generateList(
-                              model: model,
-                              filters: model.filters,
-                              meta: meta,
-                            ),
-                          ),
-                        ],
+                                )
+                                as Map?;
+
+                        if (sort != null) {
+                          model.updateSort(sort);
+                        }
+                      },
+                      sortField: model.sortField.label!,
+                    ),
+                  ],
+                ),
+                appBar: buildAppBar(
+                  title: model.meta.docs[0].name,
+                  onPressed: () {
+                    NavigationHelper.push(
+                      context: context,
+                      page: ShowSiblingDoctypes(
+                        model: model,
+                        title: model.meta.docs[0].name,
                       ),
-                    ),
+                    );
+                  },
+                  actions: <Widget>[_newDoc(context)],
+                ),
+                body: Container(
+                  color: Palette.bgColor,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (model.filters.isNotEmpty)
+                        Container(
+                          height: 50,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: model.filters.length,
+                            itemBuilder: (context, index) {
+                              var filter = model.filters[index];
+                              var txt =
+                                  "${filter.field.label} ${filter.filterOperator.label} ${filter.value}";
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                  vertical: 10,
+                                ),
+                                child: InputChip(
+                                  label: Text(
+                                    txt,
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  deleteIcon: FrappeIcon(
+                                    FrappeIcons.close_alt,
+                                    size: 14,
+                                  ),
+                                  backgroundColor: FrappePalette.grey[200],
+                                  shape: BeveledRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(6),
+                                    ),
+                                  ),
+                                  onDeleted: () {
+                                    model.removeFilter(index);
+                                  },
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      Expanded(
+                        child: _generateList(
+                          model: model,
+                          filters: model.filters,
+                          meta: meta,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
+            ),
     );
   }
 
@@ -206,10 +198,7 @@ class CustomListView extends StatelessWidget {
           color: Palette.primaryButtonColor,
         ),
         child: IconButton(
-          icon: FrappeIcon(
-            FrappeIcons.small_add,
-            color: Colors.white,
-          ),
+          icon: FrappeIcon(FrappeIcons.small_add, color: Colors.white),
           onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -258,10 +247,7 @@ class CustomListView extends StatelessWidget {
           model: model,
           data: e,
           onListTap: () {
-            model.onListTap(
-              context: buildContext,
-              name: e["name"],
-            );
+            model.onListTap(context: buildContext, name: e["name"]);
           },
           onButtonTap: (k, v) {
             // model.onButtonTap(key: k, value: v);
@@ -277,11 +263,13 @@ class CustomListView extends StatelessWidget {
     required Function onButtonTap,
     required ListViewViewModel model,
   }) {
-    var assignee =
-        data["_assign"] != null ? json.decode(data["_assign"]) : null;
+    var assignee = data["_assign"] != null
+        ? json.decode(data["_assign"])
+        : null;
 
-    var likedBy =
-        data["_liked_by"] != null ? json.decode(data["_liked_by"]) : [];
+    var likedBy = data["_liked_by"] != null
+        ? json.decode(data["_liked_by"])
+        : [];
     var isLikedByUser = likedBy.contains(model.userId);
 
     var seenBy = data["_seen"] != null ? json.decode(data["_seen"]) : [];
@@ -299,11 +287,7 @@ class CustomListView extends StatelessWidget {
       assignee: assignee != null && assignee.length > 0 ? assignee : null,
       onButtonTap: onButtonTap,
       title: getTitle(model.meta.docs[0], data),
-      modifiedOn: "${timeago.format(
-        DateTime.parse(
-          data['modified'],
-        ),
-      )}",
+      modifiedOn: "${timeago.format(DateTime.parse(data['modified']))}",
       name: data["name"],
       status: ["status", data["status"]],
       commentCount: data["_comment_count"],
@@ -343,7 +327,7 @@ class CustomListView extends StatelessWidget {
                 ),
               );
             },
-          )
+          ),
         ],
       ),
     );
@@ -366,49 +350,29 @@ class AddFilterButton extends StatelessWidget {
         backgroundColor: FrappePalette.grey[700],
         padding: EdgeInsets.all(8),
         shape: RoundedRectangleBorder(
-          side: BorderSide(
-            color: Colors.transparent,
-          ),
-          borderRadius: BorderRadius.all(
-            Radius.circular(5),
-          ),
+          side: BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.all(Radius.circular(5)),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          FrappeIcon(
-            FrappeIcons.filter,
-            color: Colors.white,
-          ),
-          SizedBox(
-            width: 10,
-          ),
-          Text(
-            'Add filter',
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(
-            width: 10,
-          ),
+          FrappeIcon(FrappeIcons.filter, color: Colors.white),
+          SizedBox(width: 10),
+          Text('Add filter', style: TextStyle(color: Colors.white)),
+          SizedBox(width: 10),
           Container(
             width: 20,
             height: 20,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(
-                4,
-              ),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Center(
               child: Text(
                 appliedFilters.toString(),
-                style: TextStyle(
-                  color: Colors.black,
-                ),
+                style: TextStyle(color: Colors.black),
               ),
             ),
           ),
@@ -437,12 +401,8 @@ class SortByButton extends StatelessWidget {
         backgroundColor: FrappePalette.grey[700],
         padding: EdgeInsets.all(8),
         shape: RoundedRectangleBorder(
-          side: BorderSide(
-            color: Colors.transparent,
-          ),
-          borderRadius: BorderRadius.all(
-            Radius.circular(5),
-          ),
+          side: BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.all(Radius.circular(5)),
         ),
       ),
       child: Row(
@@ -455,25 +415,17 @@ class SortByButton extends StatelessWidget {
                 : FrappeIcons.sort_ascending,
             color: Colors.white,
           ),
-          SizedBox(
-            width: 10,
-          ),
+          SizedBox(width: 10),
           ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 100,
-            ),
+            constraints: BoxConstraints(maxWidth: 100),
             child: Text(
               "$sortField",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.white,
-              ),
+              style: TextStyle(color: Colors.white),
             ),
           ),
-          SizedBox(
-            width: 10,
-          ),
+          SizedBox(width: 10),
         ],
       ),
       onPressed: onPressed,
@@ -485,10 +437,7 @@ class ShowSiblingDoctypes extends StatelessWidget {
   final ListViewViewModel model;
   final String title;
 
-  const ShowSiblingDoctypes({
-    required this.model,
-    required this.title,
-  });
+  const ShowSiblingDoctypes({required this.model, required this.title});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -501,21 +450,17 @@ class ShowSiblingDoctypes extends StatelessWidget {
         },
       ),
       body: model.state == ViewState.busy
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
+          ? Center(child: CircularProgressIndicator())
           : Builder(
               builder: (context) {
                 List<Widget> listItems = [];
 
-                model.desktopPageResponse.message.cards.items.forEach(
-                  (item) {
-                    listItems.add(Column(
+                model.desktopPageResponse.message.cards.items.forEach((item) {
+                  listItems.add(
+                    Column(
                       children: [
                         ListTile(
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16),
                           title: Text(
                             item.label.toUpperCase(),
                             style: TextStyle(
@@ -524,44 +469,39 @@ class ShowSiblingDoctypes extends StatelessWidget {
                               fontSize: 11,
                             ),
                           ),
-                          visualDensity: VisualDensity(
-                            vertical: -4,
-                          ),
+                          visualDensity: VisualDensity(vertical: -4),
                         ),
-                        ...item.links.where((link) {
-                          return link.type != "DocType";
-                        }).map(
-                          (link) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                              ),
-                              child: ListTile(
-                                visualDensity: VisualDensity(
-                                  vertical: -4,
+                        ...item.links
+                            .where((link) {
+                              return link.type != "DocType";
+                            })
+                            .map((link) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
                                 ),
-                                tileColor: title == link.label
-                                    ? Palette.bgColor
-                                    : Colors.white,
-                                title: Text(link.label),
-                                onTap: () {
-                                  model.switchDoctype(
-                                    doctype: link.label,
-                                    context: context,
-                                  );
-                                },
-                              ),
-                            );
-                          },
-                        ).toList()
+                                child: ListTile(
+                                  visualDensity: VisualDensity(vertical: -4),
+                                  tileColor: title == link.label
+                                      ? Palette.bgColor
+                                      : Colors.white,
+                                  title: Text(link.label),
+                                  onTap: () {
+                                    model.switchDoctype(
+                                      doctype: link.label,
+                                      context: context,
+                                    );
+                                  },
+                                ),
+                              );
+                            })
+                            .toList(),
                       ],
-                    ));
-                  },
-                );
+                    ),
+                  );
+                });
 
-                return ListView(
-                  children: listItems,
-                );
+                return ListView(children: listItems);
               },
             ),
     );

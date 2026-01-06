@@ -12,16 +12,16 @@ class DioHelper {
   static String? cookies;
 
   static Future init(String baseUrl) async {
+    print('DioHelper.init called with baseUrl: $baseUrl');
     var cookieJar = await getCookiePath();
     dio = Dio(
       BaseOptions(
         baseUrl: "$baseUrl/api",
+        connectTimeout: const Duration(seconds: 60),
+        receiveTimeout: const Duration(seconds: 60),
       ),
-    )..interceptors.add(
-        CookieManager(cookieJar),
-      );
-    dio?.options.connectTimeout = 60 * 1000;
-    dio?.options.receiveTimeout = 60 * 1000;
+    )..interceptors.add(CookieManager(cookieJar));
+    print('Dio initialized with baseUrl: ${dio?.options.baseUrl}');
   }
 
   static Future initCookies() async {
@@ -32,7 +32,9 @@ class DioHelper {
     Directory appDocDir = await getApplicationSupportDirectory();
     String appDocPath = appDocDir.path;
     return PersistCookieJar(
-        ignoreExpires: true, storage: FileStorage(appDocPath));
+      ignoreExpires: true,
+      storage: FileStorage(appDocPath),
+    );
   }
 
   static Future<String?> getCookies() async {

@@ -76,15 +76,12 @@ class DesktopPageShortcuts {
   late String label;
   late List<ShortcutItem> items;
 
-  DesktopPageShortcuts({
-    required this.label,
-    required this.items,
-  });
+  DesktopPageShortcuts({required this.label, required this.items});
 
   DesktopPageShortcuts.fromJson(Map<dynamic, dynamic> json) {
     label = json['label'];
+    items = [];
     if (json['items'] != null) {
-      items = [];
       json['items'].forEach((v) {
         items.add(new ShortcutItem.fromJson(v));
       });
@@ -103,15 +100,12 @@ class DesktopPageCards {
   late String label;
   late List<CardItem> items;
 
-  DesktopPageCards({
-    required this.label,
-    required this.items,
-  });
+  DesktopPageCards({required this.label, required this.items});
 
   DesktopPageCards.fromJson(Map<dynamic, dynamic> json) {
     label = json['label'];
+    items = [];
     if (json['items'] != null) {
-      items = [];
       json['items'].forEach((v) {
         items.add(CardItem.fromJson(v));
       });
@@ -141,20 +135,21 @@ class ChartItem {
   late String? label;
   late String? doctype;
 
-  ChartItem(
-      {this.name,
-      this.owner,
-      this.creation,
-      this.modified,
-      this.modifiedBy,
-      this.parent,
-      this.parentfield,
-      this.parenttype,
-      this.idx,
-      this.docstatus,
-      this.chartName,
-      this.label,
-      this.doctype});
+  ChartItem({
+    this.name,
+    this.owner,
+    this.creation,
+    this.modified,
+    this.modifiedBy,
+    this.parent,
+    this.parentfield,
+    this.parenttype,
+    this.idx,
+    this.docstatus,
+    this.chartName,
+    this.label,
+    this.doctype,
+  });
 
   ChartItem.fromJson(Map<dynamic, dynamic> json) {
     name = json['name'];
@@ -214,28 +209,29 @@ class ShortcutItem {
   late String? doctype;
   late int? isQueryReport;
 
-  ShortcutItem(
-      {this.name,
-      this.owner,
-      this.creation,
-      this.modified,
-      this.modifiedBy,
-      this.parent,
-      this.parentfield,
-      this.parenttype,
-      this.idx,
-      this.docstatus,
-      this.type,
-      required this.linkTo,
-      this.docView,
-      required this.label,
-      this.icon,
-      this.restrictToDomain,
-      this.statsFilter,
-      this.color,
-      this.format,
-      this.doctype,
-      this.isQueryReport});
+  ShortcutItem({
+    this.name,
+    this.owner,
+    this.creation,
+    this.modified,
+    this.modifiedBy,
+    this.parent,
+    this.parentfield,
+    this.parenttype,
+    this.idx,
+    this.docstatus,
+    this.type,
+    required this.linkTo,
+    this.docView,
+    required this.label,
+    this.icon,
+    this.restrictToDomain,
+    this.statsFilter,
+    this.color,
+    this.format,
+    this.doctype,
+    this.isQueryReport,
+  });
 
   ShortcutItem.fromJson(Map<dynamic, dynamic> json) {
     name = json['name'];
@@ -304,21 +300,22 @@ class CardItem {
   late List<CardItemLink> links;
   late String? doctype;
 
-  CardItem(
-      {this.name,
-      this.owner,
-      this.creation,
-      this.modified,
-      this.modifiedBy,
-      this.parent,
-      this.parentfield,
-      this.parenttype,
-      this.idx,
-      this.docstatus,
-      required this.label,
-      this.hidden,
-      required this.links,
-      this.doctype});
+  CardItem({
+    this.name,
+    this.owner,
+    this.creation,
+    this.modified,
+    this.modifiedBy,
+    this.parent,
+    this.parentfield,
+    this.parenttype,
+    this.idx,
+    this.docstatus,
+    required this.label,
+    this.hidden,
+    required this.links,
+    this.doctype,
+  });
 
   CardItem.fromJson(Map<dynamic, dynamic> json) {
     name = json['name'];
@@ -376,19 +373,20 @@ class CardItemLink {
   late String? icon;
   late String? linkTo;
 
-  CardItemLink(
-      {this.description,
-      required this.label,
-      required this.name,
-      this.onboard,
-      this.type,
-      this.count,
-      this.dependencies,
-      this.doctype,
-      this.isQueryReport,
-      this.incompleteDependencies,
-      this.icon,
-      this.linkTo});
+  CardItemLink({
+    this.description,
+    required this.label,
+    required this.name,
+    this.onboard,
+    this.type,
+    this.count,
+    this.dependencies,
+    this.doctype,
+    this.isQueryReport,
+    this.incompleteDependencies,
+    this.icon,
+    this.linkTo,
+  });
 
   CardItemLink.fromJson(Map<dynamic, dynamic> json) {
     description = json['description'];

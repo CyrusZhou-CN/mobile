@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:frappe_app/config/frappe_palette.dart';
 import 'package:frappe_app/utils/enums.dart';
 
+import '../model/config.dart';
 import '../model/offline_storage.dart';
 import '../utils/helpers.dart';
 import '../utils/http.dart';
@@ -14,11 +15,7 @@ class UserAvatar extends StatelessWidget {
   final double? size;
   final ImageShape shape;
 
-  UserAvatar({
-    required this.uid,
-    this.shape = ImageShape.circle,
-    this.size,
-  });
+  UserAvatar({required this.uid, this.shape = ImageShape.circle, this.size});
 
   Widget renderShape({
     String? txt,
@@ -39,19 +36,14 @@ class UserAvatar extends StatelessWidget {
               ? Center(
                   child: Text(
                     txt,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: textColor,
-                    ),
+                    style: TextStyle(fontSize: 12, color: textColor),
                   ),
                 )
               : null,
         );
       } else {
         return ClipRRect(
-          borderRadius: BorderRadius.circular(
-            12,
-          ),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             height: size,
             width: size,
@@ -59,10 +51,7 @@ class UserAvatar extends StatelessWidget {
             child: Center(
               child: Text(
                 txt!,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: textColor,
-                ),
+                style: TextStyle(fontSize: 12, color: textColor),
               ),
             ),
           ),
@@ -70,31 +59,53 @@ class UserAvatar extends StatelessWidget {
       }
     } else {
       if (shape == ImageShape.circle) {
-        return CircleAvatar(
-          radius: size,
-          backgroundImage: imageProvider,
-        );
+        return CircleAvatar(radius: size, backgroundImage: imageProvider);
       } else {
-        return Image(
-          height: size,
-          width: size,
-          image: imageProvider,
-        );
+        return Image(height: size, width: size, image: imageProvider);
       }
     }
   }
 
-  Widget getAvatar(
-    String? uid,
-  ) {
+  Widget getAvatar(String? uid) {
     if (uid == null) {
       return Container();
     }
+    print('UserAvatar getAvatar called for uid: $uid');
+    print('UserAvatar Config().userId: ${Config().userId}');
+    print('UserAvatar Config().primaryCacheKey: ${Config().primaryCacheKey}');
     var allUsers = OfflineStorage.getItem('allUsers');
     allUsers = allUsers["data"];
+    print('UserAvatar: allUsers for uid $uid: $allUsers');
     if (allUsers != null) {
       var user = allUsers[uid];
+      print('UserAvatar: user data for $uid: $user');
       var imageUrl = user != null ? user["user_image"] : null;
+      print('UserAvatar: imageUrl for $uid: $imageUrl');
+
+      // If no image in allUsers, try to get from User document
+      if (imageUrl == null || imageUrl.isEmpty) {
+        try {
+          var userDoc = OfflineStorage.getItem('User$uid');
+          print('UserAvatar: Checking User doc key: User$uid');
+          print('UserAvatar: User doc result: $userDoc');
+          if (userDoc != null &&
+              userDoc['data'] != null &&
+              userDoc['data']['docs'] != null) {
+            var docs = userDoc['data']['docs'];
+            if (docs is List && docs.isNotEmpty) {
+              var docImageUrl = docs[0]['user_image'];
+              print('UserAvatar: user_image from User doc: $docImageUrl');
+              if (docImageUrl != null && docImageUrl.isNotEmpty) {
+                imageUrl = docImageUrl;
+                print('UserAvatar: Found imageUrl in User doc: $imageUrl');
+              }
+            }
+          }
+        } catch (e) {
+          print('UserAvatar: Error getting image from User doc: $e');
+        }
+      }
+
       if (imageUrl != null) {
         if (!Uri.parse(imageUrl).isAbsolute) {
           imageUrl = getAbsoluteUrl(imageUrl);
@@ -104,37 +115,20 @@ class UserAvatar extends StatelessWidget {
           httpHeaders: {
             // HttpHeaders.cookieHeader: DioHelper.cookies!,
           },
-          imageBuilder: (context, imageProvider) => renderShape(
-            imageProvider: imageProvider,
-            size: size,
-          ),
-          placeholder: (context, url) => renderShape(
-            txt: getInitials(
-              user["full_name"],
-            ),
-            size: size,
-          ),
-          errorWidget: (context, url, error) => renderShape(
-            txt: '',
-            size: size,
-          ),
+          imageBuilder: (context, imageProvider) =>
+              renderShape(imageProvider: imageProvider, size: size),
+          placeholder: (context, url) =>
+              renderShape(txt: getInitials(user["full_name"]), size: size),
+          errorWidget: (context, url, error) =>
+              renderShape(txt: '', size: size),
         );
       } else if (user == null) {
-        return renderShape(
-          txt: uid[0].toUpperCase(),
-          size: size,
-        );
+        return renderShape(txt: uid[0].toUpperCase(), size: size);
       } else {
-        return renderShape(
-          txt: getInitials(user["full_name"]),
-          size: size,
-        );
+        return renderShape(txt: getInitials(user["full_name"]), size: size);
       }
     } else {
-      return renderShape(
-        txt: uid[0].toUpperCase(),
-        size: size,
-      );
+      return renderShape(txt: uid[0].toUpperCase(), size: size);
     }
   }
 

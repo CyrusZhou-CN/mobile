@@ -39,49 +39,40 @@ class CommentBox extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 2.0),
       child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         color: Colors.white,
         child: Column(
           children: [
             ListTile(
-              title: Text(
-                '$commenterName',
-                style: TextStyle(
-                  fontSize: 13,
-                ),
-              ),
+              title: Text('$commenterName', style: TextStyle(fontSize: 13)),
               subtitle: Text("commented $time"),
               trailing: Config().userId == data.owner
                   ? IconButton(
                       padding: EdgeInsets.zero,
-                      icon: FrappeIcon(
-                        FrappeIcons.close_alt,
-                        size: 16,
-                      ),
+                      icon: FrappeIcon(FrappeIcons.close_alt, size: 16),
                       onPressed: () {
                         showDialog(
                           context: context,
                           builder: (context) {
                             return AlertDialog(
-                              title: Text('Are you sure'),
+                              title: const Text('Are you sure'),
                               actions: <Widget>[
-                                FlatButton(
-                                  child: Text('Yes'),
+                                TextButton(
                                   onPressed: () async {
                                     Navigator.of(context).pop();
-                                    await locator<Api>()
-                                        .deleteComment(data.name);
+                                    await locator<Api>().deleteComment(
+                                      data.name,
+                                    );
                                     callback();
                                   },
+                                  child: const Text('Yes'),
                                 ),
-                                FlatButton(
-                                  child: Text('No'),
+                                TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
-                                )
+                                  child: const Text('No'),
+                                ),
                               ],
                             );
                           },
@@ -92,9 +83,7 @@ class CommentBox extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.only(left: 8.0),
-              child: Html(
-                data: data.content,
-              ),
+              child: Html(data: data.content),
             ),
           ],
         ),

@@ -15,11 +15,7 @@ class DatetimeField extends StatelessWidget with Control, ControlInput {
   final Key? key;
   final Map? doc;
 
-  const DatetimeField({
-    required this.doctypeField,
-    this.key,
-    this.doc,
-  });
+  const DatetimeField({required this.doctypeField, this.key, this.doc});
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +33,7 @@ class DatetimeField extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(
-        f(context),
-      );
+      validators.add(f);
     }
 
     return FormBuilderDateTimePicker(
@@ -47,12 +41,9 @@ class DatetimeField extends StatelessWidget with Control, ControlInput {
       valueTransformer: (val) {
         return val?.toIso8601String();
       },
-      resetIcon: Icon(Icons.close),
       initialValue: value,
       name: doctypeField.fieldname,
-      decoration: Palette.formFieldDecoration(
-        label: doctypeField.label,
-      ),
+      decoration: Palette.formFieldDecoration(label: doctypeField.label),
       validator: FormBuilderValidators.compose(validators),
     );
   }

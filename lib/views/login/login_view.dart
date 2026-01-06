@@ -42,17 +42,11 @@ class _LoginState extends State<Login> {
         body: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              SizedBox(
-                height: 60,
-              ),
+              SizedBox(height: 60),
               FrappeLogo(),
-              SizedBox(
-                height: 24,
-              ),
+              SizedBox(height: 24),
               Title(),
-              SizedBox(
-                height: 24,
-              ),
+              SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
@@ -66,8 +60,9 @@ class _LoginState extends State<Login> {
                               name: 'serverURL',
                               initialValue: model.savedCreds.serverURL,
                               validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(context),
-                                FormBuilderValidators.url(context),
+                                FormBuilderValidators.required(),
+                                // Temporarily remove URL validator to allow more flexible input
+                                // FormBuilderValidators.url(),
                               ]),
                               decoration: Palette.formFieldDecoration(
                                 label: "Server URL",
@@ -83,14 +78,16 @@ class _LoginState extends State<Login> {
                               name: 'usr',
                               initialValue: model.savedCreds.usr,
                               validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(context),
+                                FormBuilderValidators.required(),
                               ]),
                               decoration: Palette.formFieldDecoration(
                                 label: "Email Address",
                               ),
                             ),
                             field: DoctypeField(
-                                fieldname: "email", label: "Email Address"),
+                              fieldname: "email",
+                              label: "Email Address",
+                            ),
                           ),
                           PasswordField(),
                           FrappeFlatButton(
@@ -99,15 +96,16 @@ class _LoginState extends State<Login> {
                             height: 46,
                             buttonType: ButtonType.primary,
                             onPressed: () async {
-                              FocusScope.of(context).requestFocus(
-                                FocusNode(),
-                              );
+                              FocusScope.of(context).requestFocus(FocusNode());
 
                               if (_fbKey.currentState != null) {
                                 if (_fbKey.currentState!.saveAndValidate()) {
                                   var formValue = _fbKey.currentState?.value;
 
                                   try {
+                                    print(
+                                      'Setting base URL: ${formValue!["serverURL"]}',
+                                    );
                                     await setBaseUrl(formValue!["serverURL"]);
 
                                     var loginRequest = LoginRequest(
@@ -115,6 +113,9 @@ class _LoginState extends State<Login> {
                                       pwd: formValue["pwd"],
                                     );
 
+                                    print(
+                                      'Attempting login for user: ${loginRequest.usr}',
+                                    );
                                     var loginResponse = await model.login(
                                       loginRequest,
                                     );
@@ -127,11 +128,12 @@ class _LoginState extends State<Login> {
                                         isScrollControlled: true,
                                         builder: (context) =>
                                             VerificationBottomSheetView(
-                                          loginRequest: loginRequest,
-                                          tmpId: loginResponse.tmpId!,
-                                          message: loginResponse
-                                              .verification!.prompt,
-                                        ),
+                                              loginRequest: loginRequest,
+                                              tmpId: loginResponse.tmpId!,
+                                              message: loginResponse
+                                                  .verification!
+                                                  .prompt,
+                                            ),
                                       );
                                     } else {
                                       NavigationHelper.pushReplacement(
@@ -214,16 +216,14 @@ class _VerificationBottomSheetViewState
               child: Column(
                 children: [
                   Text(widget.message),
-                  SizedBox(
-                    height: 10,
-                  ),
+                  SizedBox(height: 10),
                   FormBuilder(
                     key: _fbKey,
                     child: buildDecoratedControl(
                       control: FormBuilderTextField(
                         name: 'otp',
                         validator: FormBuilderValidators.compose([
-                          FormBuilderValidators.required(context),
+                          FormBuilderValidators.required(),
                         ]),
                         decoration: Palette.formFieldDecoration(
                           label: "Verification",
@@ -241,9 +241,7 @@ class _VerificationBottomSheetViewState
                     height: 46,
                     buttonType: ButtonType.primary,
                     onPressed: () async {
-                      FocusScope.of(context).requestFocus(
-                        FocusNode(),
-                      );
+                      FocusScope.of(context).requestFocus(FocusNode());
 
                       if (_fbKey.currentState != null) {
                         if (_fbKey.currentState!.saveAndValidate()) {
@@ -280,9 +278,7 @@ class _VerificationBottomSheetViewState
                       }
                     },
                   ),
-                  Container(
-                    height: 100,
-                  ),
+                  Container(height: 100),
                 ],
               ),
             ),
@@ -298,10 +294,7 @@ class Title extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       'Login to Frappe',
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     );
   }
 }
@@ -335,33 +328,25 @@ class _PasswordFieldState extends State<PasswordField> {
             maxLines: 1,
             name: 'pwd',
             validator: FormBuilderValidators.compose([
-              FormBuilderValidators.required(context),
+              FormBuilderValidators.required(),
             ]),
             obscureText: _hidePassword,
-            decoration: Palette.formFieldDecoration(
-              label: "Password",
-            ),
+            decoration: Palette.formFieldDecoration(label: "Password"),
           ),
           TextButton(
             style: ButtonStyle(
-              overlayColor: MaterialStateProperty.all(
-                Colors.transparent,
-              ),
+              overlayColor: MaterialStateProperty.all(Colors.transparent),
             ),
             child: Text(
               _hidePassword ? "Show" : "Hide",
-              style: TextStyle(
-                color: FrappePalette.grey[600],
-              ),
+              style: TextStyle(color: FrappePalette.grey[600]),
             ),
             onPressed: () {
-              setState(
-                () {
-                  _hidePassword = !_hidePassword;
-                },
-              );
+              setState(() {
+                _hidePassword = !_hidePassword;
+              });
             },
-          )
+          ),
         ],
       ),
       field: DoctypeField(fieldname: "password", label: "Password"),

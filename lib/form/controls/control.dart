@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:frappe_app/app/locator.dart';
 import 'package:frappe_app/config/frappe_palette.dart';
 
 import 'package:frappe_app/config/palette.dart';
@@ -10,14 +7,9 @@ import 'package:frappe_app/form/controls/dynamic_link.dart';
 import 'package:frappe_app/form/controls/read_only.dart';
 import 'package:frappe_app/form/controls/text.dart';
 import 'package:frappe_app/model/common.dart';
-import 'package:frappe_app/model/config.dart';
 import 'package:frappe_app/model/doctype_response.dart';
-import 'package:frappe_app/services/api/api.dart';
-import 'package:frappe_app/utils/helpers.dart';
 import 'package:frappe_app/widgets/custom_expansion_tile.dart';
 import 'package:frappe_app/widgets/section.dart';
-
-import '../../config/palette.dart';
 
 import './custom_table.dart';
 import './check.dart';
@@ -75,10 +67,7 @@ Widget makeControl({
 
     case "Table":
       {
-        control = CustomTable(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = CustomTable(doctypeField: field, doc: doc);
       }
       break;
 
@@ -114,37 +103,25 @@ Widget makeControl({
 
     case "Small Text":
       {
-        control = SmallText(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = SmallText(doctypeField: field, doc: doc);
       }
       break;
 
     case "Text":
       {
-        control = ControlText(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = ControlText(doctypeField: field, doc: doc);
       }
       break;
 
     case "Data":
       {
-        control = Data(
-          doc: doc,
-          doctypeField: field,
-        );
+        control = Data(doc: doc, doctypeField: field);
       }
       break;
 
     case "Read Only":
       {
-        control = ReadOnly(
-          doc: doc,
-          doctypeField: field,
-        );
+        control = ReadOnly(doc: doc, doctypeField: field);
       }
       break;
 
@@ -160,65 +137,44 @@ Widget makeControl({
 
     case "Text Editor":
       {
-        control = TextEditor(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = TextEditor(doctypeField: field, doc: doc);
       }
       break;
 
     case "Datetime":
       {
-        control = DatetimeField(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = DatetimeField(doctypeField: field, doc: doc);
       }
       break;
 
     case "Float":
     case "Percent":
       {
-        control = Float(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = Float(doctypeField: field, doc: doc);
       }
       break;
 
     case "Currency":
       {
-        control = Currency(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = Currency(doctypeField: field, doc: doc);
       }
       break;
 
     case "Int":
       {
-        control = Int(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = Int(doctypeField: field, doc: doc);
       }
       break;
 
     case "Time":
       {
-        control = Time(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = Time(doctypeField: field, doc: doc);
       }
       break;
 
     case "Date":
       {
-        control = Date(
-          doctypeField: field,
-          doc: doc,
-        );
+        control = Date(doctypeField: field, doc: doc);
       }
       break;
 
@@ -245,15 +201,9 @@ Widget makeControl({
       break;
   }
   if (decorateControl) {
-    return buildDecoratedControl(
-      control: control,
-      field: field,
-    );
+    return buildDecoratedControl(control: control, field: field);
   } else {
-    return Padding(
-      padding: Palette.fieldPadding,
-      child: control,
-    );
+    return Padding(padding: Palette.fieldPadding, child: control);
   }
 }
 
@@ -284,16 +234,11 @@ Widget buildDecoratedControl({
             if (field.reqd == 1)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4.0),
-                child: Text(
-                  '*',
-                  style: TextStyle(
-                    color: FrappePalette.red,
-                  ),
-                ),
+                child: Text('*', style: TextStyle(color: FrappePalette.red)),
               ),
           ],
         ),
-        control
+        control,
       ],
     ),
   );
@@ -317,162 +262,137 @@ List<Widget> generateLayout({
   int cIdx = 0;
   int sIdx = 0;
 
-  fields.forEach(
-    (field) {
-      var fieldVisibility = field.pVisible == 1;
+  fields.forEach((field) {
+    var fieldVisibility = field.pVisible == 1;
 
-      var controlWidget = Visibility(
-        visible: fieldVisibility,
-        child: Container(
-          color: Colors.white,
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 10,
-          ),
-          child: makeControl(
-            field: field,
-            doc: doc,
-            onControlChanged: onControlChanged,
-          ),
+    var controlWidget = Visibility(
+      visible: fieldVisibility,
+      child: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 10),
+        child: makeControl(
+          field: field,
+          doc: doc,
+          onControlChanged: onControlChanged,
         ),
-      );
+      ),
+    );
 
-      // TODO handle in better way
-      var controlWidget2 = Visibility(
-        visible: fieldVisibility,
-        child: Container(
-          color: Colors.white,
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 16,
-          ),
-          child: makeControl(
-            field: field,
-            doc: doc,
-            onControlChanged: onControlChanged,
-          ),
+    // TODO handle in better way
+    var controlWidget2 = Visibility(
+      visible: fieldVisibility,
+      child: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.only(left: 16, right: 16),
+        child: makeControl(
+          field: field,
+          doc: doc,
+          onControlChanged: onControlChanged,
         ),
-      );
+      ),
+    );
 
-      if (field.fieldtype == "Section Break") {
-        if (sections.length > 0) {
-          var sSplit = sectionLabels[sIdx].split("@@");
-          var sectionLabel = sSplit[0];
-          var sectionVisibility = sSplit[1];
-          widgets.add(
-            Visibility(
-              visible: sectionVisibility == "true",
-              child: sectionLabel != ''
-                  ? Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 10.0,
-                      ),
-                      child: ListTileTheme(
-                        tileColor: Colors.white,
-                        child: CustomExpansionTile(
-                          maintainState: true,
-                          initiallyExpanded: true,
-                          title: Text(
-                            sectionLabel,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
+    if (field.fieldtype == "Section Break") {
+      if (sections.length > 0) {
+        var sSplit = sectionLabels[sIdx].split("@@");
+        var sectionLabel = sSplit[0];
+        var sectionVisibility = sSplit[1];
+        widgets.add(
+          Visibility(
+            visible: sectionVisibility == "true",
+            child: sectionLabel != ''
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: ListTileTheme(
+                      tileColor: Colors.white,
+                      child: CustomExpansionTile(
+                        maintainState: true,
+                        initiallyExpanded: true,
+                        title: Text(
+                          sectionLabel,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
                           ),
-                          children: [
-                            Container(
-                              color: Colors.white,
-                              child: Column(
-                                children: [...sections],
-                              ),
-                            )
-                          ],
                         ),
-                      ),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 10.0,
-                      ),
-                      child: Section(
-                        title: sectionLabel,
-                        children: [...sections],
+                        children: [
+                          Container(
+                            color: Colors.white,
+                            child: Column(children: [...sections]),
+                          ),
+                        ],
                       ),
                     ),
-            ),
-          );
-
-          sIdx += 1;
-          sections.clear();
-        } else if (collapsibles.length > 0) {
-          var cSplit = collapsibleLabels[cIdx].split("@@");
-          var collapsibleLabel = cSplit[0];
-          var collapsibleVisibility = cSplit[1];
-          widgets.add(
-            Visibility(
-              visible: collapsibleVisibility == "true",
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 10.0,
-                ),
-                child: ListTileTheme(
-                  tileColor: Colors.white,
-                  child: CustomExpansionTile(
-                    maintainState: true,
-                    title: Text(
-                      collapsibleLabel,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: Section(
+                      title: sectionLabel,
+                      children: [...sections],
                     ),
-                    children: [
-                      Container(
-                          color: Colors.white,
-                          child: Column(
-                            children: [...collapsibles],
-                          ))
-                    ],
                   ),
+          ),
+        );
+
+        sIdx += 1;
+        sections.clear();
+      } else if (collapsibles.length > 0) {
+        var cSplit = collapsibleLabels[cIdx].split("@@");
+        var collapsibleLabel = cSplit[0];
+        var collapsibleVisibility = cSplit[1];
+        widgets.add(
+          Visibility(
+            visible: collapsibleVisibility == "true",
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: ListTileTheme(
+                tileColor: Colors.white,
+                child: CustomExpansionTile(
+                  maintainState: true,
+                  title: Text(
+                    collapsibleLabel,
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                  ),
+                  children: [
+                    Container(
+                      color: Colors.white,
+                      child: Column(children: [...collapsibles]),
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
-          cIdx += 1;
-          collapsibles.clear();
-        }
-
-        if (field.collapsible == 1) {
-          var cLabel = "${field.label!}@@$fieldVisibility";
-          isSection = false;
-          isCollapsible = true;
-          collapsibleLabels.add(cLabel);
-        } else {
-          var sLabel =
-              "${field.label != null ? field.label! : ''}@@$fieldVisibility";
-          isCollapsible = false;
-          isSection = true;
-          sectionLabels.add(sLabel);
-        }
-      } else if (isSection) {
-        var firstField = sections.isEmpty;
-        if (firstField) {
-          sections.add(
-            controlWidget,
-          );
-        } else {
-          sections.add(
-            controlWidget2,
-          );
-        }
-      } else if (isCollapsible) {
-        collapsibles.add(controlWidget);
-      } else {
-        widgets.add(controlWidget);
+          ),
+        );
+        cIdx += 1;
+        collapsibles.clear();
       }
-    },
-  );
+
+      if (field.collapsible == 1) {
+        var cLabel = "${field.label!}@@$fieldVisibility";
+        isSection = false;
+        isCollapsible = true;
+        collapsibleLabels.add(cLabel);
+      } else {
+        var sLabel =
+            "${field.label != null ? field.label! : ''}@@$fieldVisibility";
+        isCollapsible = false;
+        isSection = true;
+        sectionLabels.add(sLabel);
+      }
+    } else if (isSection) {
+      var firstField = sections.isEmpty;
+      if (firstField) {
+        sections.add(controlWidget);
+      } else {
+        sections.add(controlWidget2);
+      }
+    } else if (isCollapsible) {
+      collapsibles.add(controlWidget);
+    } else {
+      widgets.add(controlWidget);
+    }
+  });
 
   if (sections.length > 0) {
     var sSplit = sectionLabels[sIdx].split("@@");
@@ -483,9 +403,7 @@ List<Widget> generateLayout({
         visible: sectionVisibility == "true",
         child: sectionLabel != ''
             ? Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 10.0,
-                ),
+                padding: const EdgeInsets.only(bottom: 10.0),
                 child: ListTileTheme(
                   tileColor: Colors.white,
                   child: CustomExpansionTile(
@@ -501,22 +419,15 @@ List<Widget> generateLayout({
                     children: [
                       Container(
                         color: Colors.white,
-                        child: Column(
-                          children: [...sections],
-                        ),
-                      )
+                        child: Column(children: [...sections]),
+                      ),
                     ],
                   ),
                 ),
               )
             : Padding(
-                padding: const EdgeInsets.only(
-                  top: 10.0,
-                ),
-                child: Section(
-                  title: sectionLabel,
-                  children: [...sections],
-                ),
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Section(title: sectionLabel, children: [...sections]),
               ),
       ),
     );
@@ -533,27 +444,20 @@ List<Widget> generateLayout({
       Visibility(
         visible: collapsibleVisibility == "true",
         child: Padding(
-          padding: const EdgeInsets.only(
-            bottom: 10,
-          ),
+          padding: const EdgeInsets.only(bottom: 10),
           child: ListTileTheme(
             tileColor: Colors.white,
             child: CustomExpansionTile(
               maintainState: true,
               title: Text(
                 collapsibleLabel,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
               ),
               children: [
                 Container(
                   color: Colors.white,
-                  child: Column(
-                    children: [...collapsibles],
-                  ),
-                )
+                  child: Column(children: [...collapsibles]),
+                ),
               ],
             ),
           ),

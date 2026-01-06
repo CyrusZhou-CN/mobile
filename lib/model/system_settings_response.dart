@@ -1,9 +1,7 @@
 class SystemSettingsResponse {
   late Message message;
 
-  SystemSettingsResponse({
-    required this.message,
-  });
+  SystemSettingsResponse({required this.message});
 
   SystemSettingsResponse.fromJson(Map<String, dynamic> json) {
     message = Message.fromJson(json['message']);
@@ -23,8 +21,25 @@ class Message {
   Message({required this.timezones, required this.defaults});
 
   Message.fromJson(Map<String, dynamic> json) {
-    timezones = json['timezones'].cast<String>();
-    defaults = Defaults.fromJson(json['defaults']);
+    timezones = json['timezones'] != null
+        ? json['timezones'].cast<String>()
+        : [];
+    defaults = json['defaults'] != null
+        ? Defaults.fromJson(json['defaults'])
+        : Defaults(
+            appName: 'Frappe',
+            timeZone: 'UTC',
+            dateFormat: 'yyyy-mm-dd',
+            timeFormat: 'HH:mm:ss',
+            numberFormat: '#,###.##',
+            floatPrecision: '2',
+            currencyPrecision: '2',
+            sessionExpiry: '6',
+            sessionExpiryMobile: '30',
+            minimumPasswordScore: '2',
+            twoFactorMethod: 'OTP App',
+            otpIssuerName: 'Frappe',
+          );
   }
 
   Map<String, dynamic> toJson() {
@@ -65,18 +80,18 @@ class Defaults {
   });
 
   Defaults.fromJson(Map<String, dynamic> json) {
-    appName = json['app_name'];
-    timeZone = json['time_zone'];
-    dateFormat = json['date_format'];
-    timeFormat = json['time_format'];
-    numberFormat = json['number_format'];
-    floatPrecision = json['float_precision'];
-    currencyPrecision = json['currency_precision'];
-    sessionExpiry = json['session_expiry'];
-    sessionExpiryMobile = json['session_expiry_mobile'];
-    minimumPasswordScore = json['minimum_password_score'];
-    twoFactorMethod = json['two_factor_method'];
-    otpIssuerName = json['otp_issuer_name'];
+    appName = json['app_name'] ?? 'Frappe';
+    timeZone = json['time_zone'] ?? 'UTC';
+    dateFormat = json['date_format'] ?? 'yyyy-mm-dd';
+    timeFormat = json['time_format'] ?? 'HH:mm:ss';
+    numberFormat = json['number_format'] ?? '#,###.##';
+    floatPrecision = json['float_precision'] ?? '2';
+    currencyPrecision = json['currency_precision'] ?? '2';
+    sessionExpiry = json['session_expiry'] ?? '6';
+    sessionExpiryMobile = json['session_expiry_mobile'] ?? '30';
+    minimumPasswordScore = json['minimum_password_score'] ?? '2';
+    twoFactorMethod = json['two_factor_method'] ?? 'OTP App';
+    otpIssuerName = json['otp_issuer_name'] ?? 'Frappe';
   }
 
   Map<String, dynamic> toJson() {

@@ -14,11 +14,7 @@ class Time extends StatelessWidget with Control, ControlInput {
   final Key? key;
   final Map? doc;
 
-  const Time({
-    required this.doctypeField,
-    this.key,
-    this.doc,
-  });
+  const Time({required this.doctypeField, this.key, this.doc});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +23,7 @@ class Time extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(
-        f(context),
-      );
+      validators.add(f);
     }
 
     var initialValue;
@@ -41,9 +35,7 @@ class Time extends StatelessWidget with Control, ControlInput {
         if ((value as String).contains("T")) {
           value = doc![doctypeField.fieldname].split("T")[1];
         }
-        initialValue = DateFormat.Hms().parse(
-          value,
-        );
+        initialValue = DateFormat.Hms().parse(value);
       }
     }
 
@@ -56,9 +48,7 @@ class Time extends StatelessWidget with Control, ControlInput {
       },
       keyboardType: TextInputType.number,
       name: doctypeField.fieldname,
-      decoration: Palette.formFieldDecoration(
-        label: doctypeField.label,
-      ),
+      decoration: Palette.formFieldDecoration(label: doctypeField.label),
       validator: FormBuilderValidators.compose(validators),
     );
   }

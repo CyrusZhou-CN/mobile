@@ -49,6 +49,32 @@ class FormViewViewModel extends BaseViewModel {
       meta = constMeta;
     }
     getData();
+    print('FormView init - doctype: $doctype, name: $constName');
+    if (meta.fields != null) {
+      print('Total fields: ${meta.fields!.length}');
+      var visibleFields = meta.fields!
+          .where(
+            (field) => field.hidden != 1 && field.fieldtype != "Column Break",
+          )
+          .toList();
+      print('Visible fields: ${visibleFields.length}');
+      var rolesField = meta.fields!.where(
+        (field) => field.fieldname == 'roles',
+      );
+      if (rolesField.isNotEmpty) {
+        print(
+          'Roles field found: ${rolesField.first.fieldtype}, hidden: ${rolesField.first.hidden}, fieldname: ${rolesField.first.fieldname}',
+        );
+      } else {
+        print('Roles field not found in meta.fields');
+      }
+      // Print all field names for debugging
+      var fieldNames = meta.fields!
+          .map((f) => '${f.fieldname}(${f.fieldtype}, hidden:${f.hidden})')
+          .take(10)
+          .toList(); // Limit to first 10
+      print('First 10 fields: $fieldNames');
+    }
   }
 
   handleFormDataChange() {
@@ -72,24 +98,23 @@ class FormViewViewModel extends BaseViewModel {
       var doctype = meta.name;
 
       if (!isOnline) {
-        var response = OfflineStorage.getItem(
-          '$doctype$name',
-        );
+        var response = OfflineStorage.getItem('$doctype$name');
         response = response["data"];
         if (response != null) {
           formData = GetDocResponse.fromJson(response);
           docinfo = formData.docinfo;
         } else {
-          error = ErrorResponse(
-            statusCode: HttpStatus.serviceUnavailable,
-          );
+          error = ErrorResponse(statusCode: HttpStatus.serviceUnavailable);
         }
       } else {
-        formData = await locator<Api>().getdoc(
-          doctype,
-          name,
-        );
+        formData = await locator<Api>().getdoc(doctype, name);
         docinfo = formData.docinfo;
+        print(
+          'Form data loaded for $doctype $name: ${formData.docs?.length ?? 0} docs',
+        );
+        if (formData.docs != null && formData.docs!.isNotEmpty) {
+          print('First doc keys: ${formData.docs![0].keys.toList()}');
+        }
       }
     } catch (e) {
       error = e as ErrorResponse;
@@ -103,10 +128,7 @@ class FormViewViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  Future handleUpdate({
-    required Map formValue,
-    required Map doc,
-  }) async {
+  Future handleUpdate({required Map formValue, required Map doc}) async {
     LoadingIndicator.loadingWithBackgroundDisabled("Saving");
     // var isOnline = await verifyOnline();
     var isOnline = true;
@@ -152,25 +174,15 @@ class FormViewViewModel extends BaseViewModel {
       //   );
       // }
       LoadingIndicator.stopLoading();
-      throw ErrorResponse(
-        statusCode: HttpStatus.serviceUnavailable,
-      );
+      throw ErrorResponse(statusCode: HttpStatus.serviceUnavailable);
     } else {
-      formValue = {
-        ...doc,
-        ...formValue,
-      };
+      formValue = {...doc, ...formValue};
 
       try {
-        var response = await locator<Api>().saveDocs(
-          meta.name,
-          formValue,
-        );
+        var response = await locator<Api>().saveDocs(meta.name, formValue);
 
         if (response.statusCode == HttpStatus.ok) {
-          docinfo = Docinfo.fromJson(
-            response.data["docinfo"],
-          );
+          docinfo = Docinfo.fromJson(response.data["docinfo"]);
           formData = GetDocResponse(
             docs: response.data["docs"],
             docinfo: docinfo,

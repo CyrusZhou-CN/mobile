@@ -20,11 +20,13 @@ AppBar buildAppBar({
     automaticallyImplyLeading: !expanded,
     titleSpacing: titleSpacing,
     centerTitle: false,
-    title: FlatButton(
-      visualDensity: VisualDensity(
-        horizontal: -4,
-      ),
+    title: TextButton(
       onPressed: onPressed,
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: const VisualDensity(horizontal: -4),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -42,12 +44,8 @@ AppBar buildAppBar({
           ),
           if (onPressed != null)
             expanded
-                ? Icon(
-                    Icons.expand_less,
-                  )
-                : Icon(
-                    Icons.expand_more,
-                  )
+                ? const Icon(Icons.expand_less)
+                : const Icon(Icons.expand_more),
         ],
       ),
     ),

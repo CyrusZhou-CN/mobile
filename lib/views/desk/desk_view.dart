@@ -22,15 +22,11 @@ import 'desk_viewmodel.dart';
 class DeskView extends StatelessWidget {
   DeskMessage? module;
 
-  DeskView([
-    this.module,
-  ]);
+  DeskView([this.module]);
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<ConnectivityStatus>(
-      context,
-    );
+    Provider.of<ConnectivityStatus>(context);
 
     return BaseView<DeskViewModel>(
       onModelReady: (model) {
@@ -42,17 +38,13 @@ class DeskView extends StatelessWidget {
       },
       builder: (context, model, child) {
         if (model.state == ViewState.busy) {
-          return Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
+          return Scaffold(body: Center(child: CircularProgressIndicator()));
         } else if (model.hasError) {
           return handleError(
             onRetry: () {
               model.getData();
             },
-            error: model.error,
+            error: model.error!,
             context: context,
           );
         } else {
@@ -60,47 +52,48 @@ class DeskView extends StatelessWidget {
             model.passedModule = module;
             module = null;
             model.getData();
-            return Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
+            return Scaffold(body: Center(child: CircularProgressIndicator()));
           } else {
-            return Scaffold(
-              backgroundColor: Palette.bgColor,
-              appBar: buildAppBar(
-                context: context,
-                title: model.currentModuleTitle,
-                onPressed: () {
-                  NavigationHelper.push(
-                    context: context,
-                    page: ShowModules(
-                      model: model,
-                      title: model.currentModuleTitle,
-                    ),
-                  );
-                },
-              ),
-              body: RefreshIndicator(
-                onRefresh: () async {
-                  model.getData();
-                },
-                child: Builder(
-                  builder: (
-                    context,
-                  ) {
-                    return ListView(
-                      padding: EdgeInsets.zero,
-                      children: _generateChildren(
-                        desktopPage: model.desktopPage,
+            // Check if desktopPage has been initialized
+            try {
+              var testAccess = model.desktopPage;
+              return Scaffold(
+                backgroundColor: Palette.bgColor,
+                appBar: buildAppBar(
+                  context: context,
+                  title: model.currentModuleTitle,
+                  onPressed: () {
+                    NavigationHelper.push(
+                      context: context,
+                      page: ShowModules(
                         model: model,
-                        context: context,
+                        title: model.currentModuleTitle,
                       ),
                     );
                   },
                 ),
-              ),
-            );
+                body: RefreshIndicator(
+                  onRefresh: () async {
+                    model.getData();
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      return ListView(
+                        padding: EdgeInsets.zero,
+                        children: _generateChildren(
+                          desktopPage: model.desktopPage,
+                          model: model,
+                          context: context,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            } catch (e) {
+              // desktopPage not initialized yet, show loading
+              return Scaffold(body: Center(child: CircularProgressIndicator()));
+            }
           }
         }
       },
@@ -109,16 +102,10 @@ class DeskView extends StatelessWidget {
 
   Widget _heading(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 6.0,
-        horizontal: 16,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16),
       child: Text(
         title,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
   }
@@ -126,12 +113,7 @@ class DeskView extends StatelessWidget {
   Widget _subHeading(String title) {
     return ListTile(
       visualDensity: VisualDensity(horizontal: 0, vertical: -4),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 
@@ -143,10 +125,7 @@ class DeskView extends StatelessWidget {
     return PaddedCardListTile(
       title: item.label,
       onTap: () async {
-        model.navigateToView(
-          doctype: item.linkTo,
-          context: context,
-        );
+        model.navigateToView(doctype: item.linkTo, context: context);
       },
     );
   }
@@ -171,21 +150,11 @@ class DeskView extends StatelessWidget {
                 width: 20,
                 height: 20,
               ),
-              Icon(
-                Icons.circle,
-                color: FrappePalette.grey[800],
-                size: 6,
-              ),
+              Icon(Icons.circle, color: FrappePalette.grey[800], size: 6),
             ],
           ),
-          SizedBox(
-            width: 8,
-          ),
-          Expanded(
-            child: Text(
-              item.label,
-            ),
-          ),
+          SizedBox(width: 8),
+          Expanded(child: Text(item.label)),
         ],
       ),
       onTap: () {
@@ -202,94 +171,107 @@ class DeskView extends StatelessWidget {
     required DeskViewModel model,
     required BuildContext context,
   }) {
+    print('DeskView: _generateChildren called');
+    print(
+      'DeskView: shortcuts: ${desktopPage.message.shortcuts.items.length}, cards: ${desktopPage.message.cards.items.length}',
+    );
     List<Widget> widgets = [];
 
     if (desktopPage.message.shortcuts.items.isNotEmpty) {
-      widgets.add(
-        SizedBox(
-          height: 20,
-        ),
-      );
-      widgets.add(
-        _heading("Your Shortcuts"),
+      widgets.add(SizedBox(height: 20));
+      widgets.add(_heading("Your Shortcuts"));
+
+      widgets.addAll(
+        desktopPage.message.shortcuts.items
+            .where((item) {
+              return item.type == "DocType";
+            })
+            .map<Widget>((item) {
+              return _shortcut(item: item, model: model, context: context);
+            })
+            .toList(),
       );
 
-      widgets.addAll(desktopPage.message.shortcuts.items.where((item) {
-        return item.type == "DocType";
-      }).map<Widget>(
-        (item) {
-          return _shortcut(
-            item: item,
-            model: model,
-            context: context,
-          );
-        },
-      ).toList());
-
-      widgets.add(
-        SizedBox(
-          height: 20,
-        ),
-      );
+      widgets.add(SizedBox(height: 20));
     }
 
     if (desktopPage.message.cards.items.isNotEmpty) {
-      widgets.add(
-        _heading("Masters"),
-      );
+      widgets.add(_heading("Masters"));
 
-      desktopPage.message.cards.items.forEach(
-        (item) {
-          widgets.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10.0,
+      desktopPage.message.cards.items.forEach((item) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: Card(
+              color: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                side: BorderSide(width: 0.5, color: FrappePalette.grey[400]!),
+                borderRadius: BorderRadius.circular(6.0),
               ),
-              child: Card(
-                color: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(
-                    width: 0.5,
-                    color: FrappePalette.grey[400]!,
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    6.0,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12.0,
-                  ),
-                  child: Column(
-                    children: [
-                      _subHeading(
-                        item.label,
-                      ),
-                      ...item.links.where((item) {
-                        return item.type != "DocType";
-                      }).map(
-                        (link) {
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Column(
+                  children: [
+                    _subHeading(item.label),
+                    ...item.links
+                        .where((item) {
+                          return item.type != "DocType";
+                        })
+                        .map((link) {
                           return _item(
                             item: link,
                             model: model,
                             context: context,
                           );
-                        },
-                      ).toList()
-                    ],
-                  ),
+                        })
+                        .toList(),
+                  ],
                 ),
               ),
             ),
-          );
+          ),
+        );
 
-          widgets.add(
-            SizedBox(
-              height: 15,
+        widgets.add(SizedBox(height: 15));
+      });
+    }
+
+    // If no content, show empty state with debug info
+    if (widgets.isEmpty) {
+      widgets.add(
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(40.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.inbox, size: 64, color: FrappePalette.grey[400]),
+                SizedBox(height: 16),
+                Text(
+                  'No content available',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: FrappePalette.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Current module: ${model.currentModule}\n'
+                  'Shortcuts: ${desktopPage.message.shortcuts.items.length}\n'
+                  'Cards: ${desktopPage.message.cards.items.length}\n'
+                  'This module doesn\'t have any configured shortcuts or cards.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: FrappePalette.grey[500],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       );
     }
 
@@ -301,10 +283,7 @@ class ShowModules extends StatelessWidget {
   final DeskViewModel model;
   final String title;
 
-  ShowModules({
-    required this.model,
-    required this.title,
-  });
+  ShowModules({required this.model, required this.title});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -317,18 +296,14 @@ class ShowModules extends StatelessWidget {
         },
       ),
       body: model.state == ViewState.busy
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
+          ? Center(child: CircularProgressIndicator())
           : Builder(
               builder: (context) {
                 List<Widget> listItems = [];
-                model.modulesByCategory.forEach(
-                  (category, modules) {
-                    listItems.add(ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
+                model.modulesByCategory.forEach((category, modules) {
+                  listItems.add(
+                    ListTile(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       title: Text(
                         category.toUpperCase(),
                         style: TextStyle(
@@ -337,44 +312,31 @@ class ShowModules extends StatelessWidget {
                           fontSize: 11,
                         ),
                       ),
-                      visualDensity: VisualDensity(
-                        vertical: -4,
+                      visualDensity: VisualDensity(vertical: -4),
+                    ),
+                  );
+                  modules.forEach((element) {
+                    listItems.add(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: ListTile(
+                          visualDensity: VisualDensity(vertical: -4),
+                          tileColor: model.currentModule == element.name
+                              ? Palette.bgColor
+                              : Colors.white,
+                          title: Text(element.label),
+                          onTap: () {
+                            model.switchModule(element);
+
+                            Navigator.of(context).pop();
+                          },
+                        ),
                       ),
-                    ));
-                    modules.forEach(
-                      (element) {
-                        listItems.add(
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 12.0),
-                            child: ListTile(
-                              visualDensity: VisualDensity(
-                                vertical: -4,
-                              ),
-                              tileColor: model.currentModule == element.name
-                                  ? Palette.bgColor
-                                  : Colors.white,
-                              title: Text(
-                                element.label,
-                              ),
-                              onTap: () {
-                                model.switchModule(
-                                  element,
-                                );
-
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ),
-                        );
-                      },
                     );
-                  },
-                );
+                  });
+                });
 
-                return ListView(
-                  children: listItems,
-                );
+                return ListView(children: listItems);
               },
             ),
     );

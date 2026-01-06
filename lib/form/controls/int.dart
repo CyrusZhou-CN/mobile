@@ -14,12 +14,7 @@ class Int extends StatelessWidget with Control, ControlInput {
   final Key? key;
   final Map? doc;
 
-  const Int({
-    required this.doctypeField,
-    this.onChanged,
-    this.key,
-    this.doc,
-  });
+  const Int({required this.doctypeField, this.onChanged, this.key, this.doc});
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +23,7 @@ class Int extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(
-        f(context),
-      );
+      validators.add(f);
     }
 
     return FormBuilderTextField(
@@ -38,14 +31,12 @@ class Int extends StatelessWidget with Control, ControlInput {
       onChanged: onChanged,
       initialValue: doc != null
           ? doc![doctypeField.fieldname] != null
-              ? doc![doctypeField.fieldname].toString()
-              : null
+                ? doc![doctypeField.fieldname].toString()
+                : null
           : null,
       keyboardType: TextInputType.number,
       name: doctypeField.fieldname,
-      decoration: Palette.formFieldDecoration(
-        label: doctypeField.label,
-      ),
+      decoration: Palette.formFieldDecoration(label: doctypeField.label),
       validator: FormBuilderValidators.compose(validators),
     );
   }

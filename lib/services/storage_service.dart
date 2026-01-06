@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
@@ -19,11 +21,9 @@ class StorageService {
 
     var encryptionKey = base64Url.decode(k!);
 
-    return Hive.openBox(
+    return await Hive.openBox(
       name,
-      encryptionCipher: HiveAesCipher(
-        encryptionKey,
-      ),
+      encryptionCipher: HiveAesCipher(encryptionKey),
     );
   }
 
@@ -31,10 +31,14 @@ class StorageService {
     final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
     var containsEncryptionKey = await secureStorage.containsKey(key: 'key');
     if (!containsEncryptionKey) {
-      var key = Hive.generateSecureKey();
+      // Generate a secure 32-byte key
+      final secureRandom = Random.secure();
+      final key = Uint8List.fromList(
+        List<int>.generate(32, (_) => secureRandom.nextInt(256)),
+      );
       await secureStorage.write(key: 'key', value: base64UrlEncode(key));
     }
-    return Hive.initFlutter();
+    return await Hive.initFlutter();
   }
 
   putSharedPrefBoolValue(String key, bool value) async {

@@ -9,7 +9,7 @@ import 'package:frappe_app/views/send_email/send_email_view.dart';
 import 'package:frappe_app/widgets/doc_version.dart';
 import 'package:frappe_app/widgets/email_box.dart';
 
-import 'package:timelines/timelines.dart' as timeline;
+import 'package:timeline_tile/timeline_tile.dart';
 
 import 'comment_box.dart';
 
@@ -75,25 +75,7 @@ class Timeline extends StatelessWidget {
         children.add(
           Padding(
             padding: const EdgeInsets.only(left: 6.0),
-            child: FlatButton.icon(
-              color: FrappePalette.grey[600],
-              shape: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.transparent,
-                ),
-                borderRadius: BorderRadius.all(
-                  Radius.circular(6),
-                ),
-              ),
-              label: Text(
-                'New Email',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              icon: FrappeIcon(
-                FrappeIcons.email,
-              ),
+            child: TextButton.icon(
               onPressed: () async {
                 showModalBottomSheet(
                   context: context,
@@ -110,6 +92,18 @@ class Timeline extends StatelessWidget {
                   ),
                 );
               },
+              icon: FrappeIcon(FrappeIcons.email),
+              label: const Text(
+                'New Email',
+                style: TextStyle(color: Colors.white),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: FrappePalette.grey[600],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ),
         );
@@ -161,12 +155,9 @@ class Timeline extends StatelessWidget {
             );
           } else if (event is Comment) {
             children.add(
-              CommentBox(
-                event,
-                () {
-                  refreshCallback();
-                },
-              ),
+              CommentBox(event, () {
+                refreshCallback();
+              }),
             );
           } else {
             if (communicationOnly) {
@@ -179,44 +170,47 @@ class Timeline extends StatelessWidget {
 
         return Padding(
           padding: const EdgeInsets.only(right: 16.0),
-          child: timeline.Timeline.tileBuilder(
-            theme: timeline.TimelineThemeData(
-              connectorTheme: timeline.ConnectorThemeData(
-                space: 51,
-                thickness: 2,
-                color: FrappePalette.grey[200],
-              ),
-              nodePosition: 0,
-            ),
+          child: ListView.builder(
             physics: NeverScrollableScrollPhysics(),
             shrinkWrap: true,
-            builder: timeline.TimelineTileBuilder.connected(
-              indicatorBuilder: (context, idx) {
-                return CircleAvatar(
-                  radius: 10,
-                  backgroundColor: FrappePalette.grey[300],
-                  child: CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 8,
-                    child: Icon(
-                      Icons.lens,
-                      size: 6,
-                      color: FrappePalette.grey[600],
+            itemCount: children.length,
+            itemBuilder: (context, idx) {
+              return TimelineTile(
+                alignment: TimelineAlign.start,
+                lineXY: 0.0,
+                isFirst: idx == 0,
+                isLast: idx == children.length - 1,
+                indicatorStyle: IndicatorStyle(
+                  width: 20,
+                  height: 20,
+                  indicator: CircleAvatar(
+                    radius: 10,
+                    backgroundColor: FrappePalette.grey[300],
+                    child: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      radius: 8,
+                      child: Icon(
+                        Icons.lens,
+                        size: 6,
+                        color: FrappePalette.grey[600],
+                      ),
                     ),
                   ),
-                );
-              },
-              connectorBuilder: (_, index, __) {
-                return timeline.SolidLineConnector();
-              },
-              itemCount: children.length,
-              contentsBuilder: (context, idx) {
-                return Padding(
+                ),
+                beforeLineStyle: LineStyle(
+                  color: FrappePalette.grey[200]!,
+                  thickness: 2,
+                ),
+                afterLineStyle: LineStyle(
+                  color: FrappePalette.grey[200]!,
+                  thickness: 2,
+                ),
+                endChild: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
                   child: children[idx],
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         );
       },
@@ -225,13 +219,11 @@ class Timeline extends StatelessWidget {
 
   List _processData() {
     var _events = [
-      ...docinfo.comments.map(
-        (comment) {
-          var c = comment.toJson();
-          c["_category"] = "comments";
-          return c;
-        },
-      ).toList(),
+      ...docinfo.comments.map((comment) {
+        var c = comment.toJson();
+        c["_category"] = "comments";
+        return c;
+      }).toList(),
       ...docinfo.communications.map((communication) {
         var c = communication.toJson();
         c["_category"] = "communications";

@@ -1,4 +1,3 @@
-// @dart=2.9
 import 'dart:io';
 
 import 'package:frappe_app/model/common.dart';
@@ -22,9 +21,7 @@ import '../../widgets/frappe_button.dart';
 class NewDoc extends StatefulWidget {
   final DoctypeResponse meta;
 
-  const NewDoc({
-    @required this.meta,
-  });
+  const NewDoc({required this.meta});
 
   @override
   _NewDocState createState() => _NewDocState();
@@ -35,9 +32,7 @@ final formHelper = FormHelper();
 class _NewDocState extends State<NewDoc> {
   @override
   Widget build(BuildContext context) {
-    Provider.of<ConnectivityStatus>(
-      context,
-    );
+    Provider.of<ConnectivityStatus>(context);
 
     return BaseView<NewDocViewModel>(
       onModelReady: (model) {
@@ -56,35 +51,33 @@ class _NewDocState extends State<NewDoc> {
                     horizontal: 4,
                   ),
                   child: FrappeFlatButton(
-                      buttonType: ButtonType.primary,
-                      title: 'Save',
-                      onPressed: () async {
-                        if (formHelper.saveAndValidate()) {
-                          var formValue = formHelper.getFormValue();
+                    buttonType: ButtonType.primary,
+                    title: 'Save',
+                    onPressed: () async {
+                      if (formHelper.saveAndValidate()) {
+                        var formValue = formHelper.getFormValue();
 
-                          try {
-                            await model.saveDoc(
-                              formValue: formValue,
-                              meta: widget.meta,
+                        try {
+                          await model.saveDoc(
+                            formValue: formValue,
+                            meta: widget.meta,
+                            context: context,
+                          );
+                        } catch (e) {
+                          var _e = e as ErrorResponse;
+
+                          if (_e.statusCode == HttpStatus.serviceUnavailable) {
+                            noInternetAlert(context);
+                          } else {
+                            FrappeAlert.errorAlert(
+                              title: _e.statusMessage,
                               context: context,
                             );
-                          } catch (e) {
-                            var _e = e as ErrorResponse;
-
-                            if (_e.statusCode ==
-                                HttpStatus.serviceUnavailable) {
-                              noInternetAlert(
-                                context,
-                              );
-                            } else {
-                              FrappeAlert.errorAlert(
-                                title: _e.statusMessage,
-                                context: context,
-                              );
-                            }
                           }
                         }
-                      }),
+                      }
+                    },
+                  ),
                 ),
               ],
             ),

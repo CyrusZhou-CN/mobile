@@ -31,9 +31,7 @@ class FrappeBottomSheet extends StatelessWidget {
       backgroundColor: Color(0xFF737373),
       appBar: AppBar(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         automaticallyImplyLeading: false,
         elevation: 0,
@@ -41,7 +39,17 @@ class FrappeBottomSheet extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             showLeading
-                ? FlatButton(
+                ? TextButton(
+                    onPressed:
+                        leadingOnPressed ??
+                        () {
+                          Navigator.of(context).pop();
+                        },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(70, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     child: Text(
                       leadingText ?? 'Cancel',
                       style: TextStyle(
@@ -50,18 +58,9 @@ class FrappeBottomSheet extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    padding: EdgeInsets.zero,
-                    minWidth: 70,
-                    onPressed: leadingOnPressed ??
-                        () {
-                          Navigator.of(context).pop();
-                        },
                   )
-                : FlatButton(
-                    padding: EdgeInsets.zero,
-                    child: Container(),
-                    onPressed: null,
-                  ),
+                : const SizedBox(width: 70),
+
             Padding(
               padding: const EdgeInsets.all(18.0),
               child: Text(
@@ -82,18 +81,13 @@ class FrappeBottomSheet extends StatelessWidget {
                     child: trailing!,
                     onPressed: onActionButtonPress,
                   )
-                : TextButton(
-                    onPressed: () {},
-                    child: Container(),
-                  ),
+                : TextButton(onPressed: () {}, child: Container()),
           ],
         ),
       ),
       body: Container(
         color: Colors.white,
-        padding: EdgeInsets.symmetric(
-          horizontal: 18,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 18),
         child: body,
       ),
     );

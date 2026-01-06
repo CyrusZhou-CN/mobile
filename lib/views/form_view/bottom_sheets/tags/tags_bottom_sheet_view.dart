@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:frappe_app/config/frappe_icons.dart';
@@ -20,11 +18,11 @@ class TagsBottomSheetView extends StatefulWidget {
   final Function refreshCallback;
 
   const TagsBottomSheetView({
-    Key key,
-    @required this.doctype,
-    @required this.name,
-    @required this.tags,
-    @required this.refreshCallback,
+    Key? key,
+    required this.doctype,
+    required this.name,
+    required this.tags,
+    required this.refreshCallback,
   }) : super(key: key);
 
   @override
@@ -68,25 +66,14 @@ class _TagsBottomSheetViewState extends State<TagsBottomSheetView> {
                         },
                         title: Row(
                           children: [
-                            FrappeIcon(
-                              FrappeIcons.tag,
-                              size: 20,
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
+                            FrappeIcon(FrappeIcons.tag, size: 20),
+                            SizedBox(width: 5),
                             Text(
                               'Create',
-                              style: TextStyle(
-                                color: FrappePalette.grey,
-                              ),
+                              style: TextStyle(color: FrappePalette.grey),
                             ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text(
-                              '"$query"',
-                            ),
+                            SizedBox(width: 5),
+                            Text('"$query"'),
                           ],
                         ),
                       );
@@ -96,11 +83,8 @@ class _TagsBottomSheetViewState extends State<TagsBottomSheetView> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(left: 16.0),
-                          child: FrappeIcon(
-                            FrappeIcons.search,
-                            size: 20,
-                          ),
-                        )
+                          child: FrappeIcon(FrappeIcons.search, size: 20),
+                        ),
                       ],
                     ),
                     doctypeField: DoctypeField(
@@ -119,9 +103,7 @@ class _TagsBottomSheetViewState extends State<TagsBottomSheetView> {
                       widget.refreshCallback();
                     },
                     itemBuilder: (context, item) {
-                      return ListTile(
-                        title: Text(item),
-                      );
+                      return ListTile(title: Text(item));
                     },
                     suggestionsCallback: (query) async {
                       return await model.getTags(
@@ -135,12 +117,9 @@ class _TagsBottomSheetViewState extends State<TagsBottomSheetView> {
               Expanded(
                 child: ListView(
                   shrinkWrap: true,
-                  children: _generateChildren(
-                    model: model,
-                    context: context,
-                  ),
+                  children: _generateChildren(model: model, context: context),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -149,62 +128,43 @@ class _TagsBottomSheetViewState extends State<TagsBottomSheetView> {
   }
 
   List<Widget> _generateChildren({
-    @required TagsBottomSheetViewModel model,
-    BuildContext context,
+    required TagsBottomSheetViewModel model,
+    required BuildContext context,
   }) {
-    return model.currentTags.asMap().entries.map<Widget>(
-      (entry) {
-        var tag = entry.value;
-        var index = entry.key;
-        return Padding(
-          padding: const EdgeInsets.only(
-            bottom: 8.0,
-            left: 8,
-            right: 8,
-          ),
-          child: ListTile(
-            visualDensity: VisualDensity(
-              horizontal: 0,
-              vertical: -4,
-            ),
-            contentPadding: EdgeInsets.only(
-              left: 10,
-            ),
-            tileColor: FrappePalette.grey[100],
-            title: Text(
-              tag,
-              style: TextStyle(
-                color: FrappePalette.grey[700],
-              ),
-            ),
-            trailing: IconButton(
-              icon: FrappeIcon(
-                FrappeIcons.close_alt,
-                size: 13,
-              ),
-              onPressed: () async {
-                try {
-                  await model.removeTag(
-                    doctype: widget.doctype,
-                    name: widget.name,
-                    tag: tag,
-                    index: index,
-                  );
+    return model.currentTags.asMap().entries.map<Widget>((entry) {
+      var tag = entry.value;
+      var index = entry.key;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0, left: 8, right: 8),
+        child: ListTile(
+          visualDensity: VisualDensity(horizontal: 0, vertical: -4),
+          contentPadding: EdgeInsets.only(left: 10),
+          tileColor: FrappePalette.grey[100],
+          title: Text(tag, style: TextStyle(color: FrappePalette.grey[700])),
+          trailing: IconButton(
+            icon: FrappeIcon(FrappeIcons.close_alt, size: 13),
+            onPressed: () async {
+              try {
+                await model.removeTag(
+                  doctype: widget.doctype,
+                  name: widget.name,
+                  tag: tag,
+                  index: index,
+                );
 
-                  FrappeAlert.infoAlert(
-                    context: context,
-                    title: "$tag has been removed",
-                  );
+                FrappeAlert.infoAlert(
+                  context: context,
+                  title: "$tag has been removed",
+                );
 
-                  widget.refreshCallback();
-                } catch (e) {
-                  print(e);
-                }
-              },
-            ),
+                widget.refreshCallback();
+              } catch (e) {
+                print(e);
+              }
+            },
           ),
-        );
-      },
-    ).toList();
+        ),
+      );
+    }).toList();
   }
 }

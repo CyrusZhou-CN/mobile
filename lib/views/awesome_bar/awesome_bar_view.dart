@@ -22,7 +22,7 @@ class Awesombar extends StatelessWidget {
       builder: (context, model, child) {
         if (model.error != null) {
           return handleError(
-            error: model.error,
+            error: model.error!,
             context: context,
             onRetry: () {
               model.refresh();
@@ -36,10 +36,7 @@ class Awesombar extends StatelessWidget {
               context: context,
             ),
             body: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 14,
-                horizontal: 16,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               child:
                   // model.recentSearchesMode
                   //     ? RecentSearches(
@@ -51,12 +48,12 @@ class Awesombar extends StatelessWidget {
                   //       )
                   //     :
                   SearchResults(
-                awesomeBarItems: model.filteredAwesomeBarItems,
-                onItemTap: (awesomeBarItem) => model.onItemTap(
-                  awesomeBarItem: awesomeBarItem,
-                  context: context,
-                ),
-              ),
+                    awesomeBarItems: model.filteredAwesomeBarItems,
+                    onItemTap: (awesomeBarItem) => model.onItemTap(
+                      awesomeBarItem: awesomeBarItem,
+                      context: context,
+                    ),
+                  ),
             ),
           );
         }
@@ -76,9 +73,7 @@ class Awesombar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Search'),
-          SizedBox(
-            height: 8,
-          ),
+          SizedBox(height: 8),
           Row(
             children: [
               Flexible(
@@ -98,9 +93,7 @@ class Awesombar extends StatelessWidget {
                       contentPadding: EdgeInsets.zero,
                       border: OutlineInputBorder(
                         borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.circular(
-                          6,
-                        ),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       fillColor: FrappePalette.grey[100],
                       hintStyle: TextStyle(
@@ -148,7 +141,15 @@ class Awesombar extends StatelessWidget {
                 Flexible(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8.0, bottom: 8),
-                    child: FlatButton(
+                    child: TextButton(
+                      onPressed: () {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(70, 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       child: Text(
                         'Cancel',
                         style: TextStyle(
@@ -156,16 +157,11 @@ class Awesombar extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      padding: EdgeInsets.zero,
-                      minWidth: 70,
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                      },
                     ),
                   ),
-                )
+                ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -176,10 +172,7 @@ class SearchResults extends StatelessWidget {
   final List<AwesomeBarItem> awesomeBarItems;
   final Function onItemTap;
 
-  const SearchResults({
-    required this.awesomeBarItems,
-    required this.onItemTap,
-  });
+  const SearchResults({required this.awesomeBarItems, required this.onItemTap});
 
   @override
   Widget build(BuildContext context) {
@@ -188,20 +181,14 @@ class SearchResults extends StatelessWidget {
       itemBuilder: (context, index) {
         var awesomeBarItem = awesomeBarItems[index];
         return Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 4,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           child: CardListTile(
             title: Text(
               awesomeBarItem.label,
-              style: TextStyle(
-                color: FrappePalette.grey[900],
-              ),
+              style: TextStyle(color: FrappePalette.grey[900]),
             ),
             onTap: () async {
-              onItemTap(
-                awesomeBarItem,
-              );
+              onItemTap(awesomeBarItem);
             },
           ),
         );

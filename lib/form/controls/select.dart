@@ -32,9 +32,7 @@ class Select extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(
-        f(context),
-      );
+      validators.add(f);
     }
 
     List opts;
@@ -48,36 +46,22 @@ class Select extends StatelessWidget with Control, ControlInput {
       key: key,
       onChanged: (dynamic val) {
         if (onControlChanged != null) {
-          onControlChanged!(
-            FieldValue(
-              field: doctypeField,
-              value: val,
-            ),
-          );
+          onControlChanged!(FieldValue(field: doctypeField, value: val));
         }
       },
-      icon: FrappeIcon(
-        FrappeIcons.select,
-      ),
+      icon: FrappeIcon(FrappeIcons.select),
       initialValue: doc != null
           ? doc![doctypeField.fieldname]
           : doctypeField.defaultValue,
       name: doctypeField.fieldname,
       hint: Text(doctypeField.label!),
-      decoration: Palette.formFieldDecoration(
-        label: doctypeField.label,
-      ),
+      decoration: Palette.formFieldDecoration(label: doctypeField.label),
       validator: FormBuilderValidators.compose(validators),
       items: opts.toSet().toList().map<DropdownMenuItem>((option) {
         return DropdownMenuItem(
           value: option,
           child: option != null
-              ? Text(
-                  option,
-                  style: TextStyle(
-                    color: Colors.black,
-                  ),
-                )
+              ? Text(option, style: TextStyle(color: Colors.black))
               : Text(''),
         );
       }).toList(),

@@ -1,10 +1,53 @@
-// @dart=2.9
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
+// Type aliases for compatibility
 typedef SelectionToTextTransformer<T> = String Function(T suggestion);
+typedef SuggestionsCallback<T> = Future<List<T>> Function(String pattern);
+typedef SuggestionSelectionCallback<T> = void Function(T suggestion);
+typedef ItemBuilder<T> = Widget Function(BuildContext context, T suggestion);
+typedef ErrorBuilder = Widget Function(BuildContext context, Object? error);
+typedef AnimationTransitionBuilder =
+    Widget Function(
+      BuildContext context,
+      Widget child,
+      AnimationController? controller,
+    );
+
+class SuggestionsBoxDecoration {
+  final double? elevation;
+  final Color? color;
+  final BoxConstraints? constraints;
+
+  const SuggestionsBoxDecoration({
+    this.elevation,
+    this.color,
+    this.constraints,
+  });
+}
+
+class SuggestionsBoxController {
+  void resize() {}
+  void close() {}
+  void open() {}
+  void toggle() {}
+}
+
+class TextFieldConfiguration {
+  final TextEditingController? controller;
+  final InputDecoration? decoration;
+  final TextStyle? style;
+  final bool autofocus;
+
+  const TextFieldConfiguration({
+    this.controller,
+    this.decoration,
+    this.style,
+    this.autofocus = false,
+  });
+}
 
 /// Text field that auto-completes user input from a list of items
 class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
@@ -49,7 +92,7 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
   ///   _controller.text = suggestion['name'];
   /// }
   /// ```
-  final SuggestionSelectionCallback<T> onSuggestionSelected;
+  final SuggestionSelectionCallback<T>? onSuggestionSelected;
 
   /// Called for each suggestion returned by [suggestionsCallback] to build the
   /// corresponding widget.
@@ -75,7 +118,7 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
 
   /// Used to control the `_SuggestionsBox`. Allows manual control to
   /// open, close, toggle, or resize the `_SuggestionsBox`.
-  final SuggestionsBoxController suggestionsBoxController;
+  final SuggestionsBoxController? suggestionsBoxController;
 
   /// The duration to wait after the user stops typing before calling
   /// [suggestionsCallback]
@@ -97,7 +140,7 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
   /// ```
   ///
   /// If not specified, a [CircularProgressIndicator](https://docs.flutter.io/flutter/material/CircularProgressIndicator-class.html) is shown
-  final WidgetBuilder loadingBuilder;
+  final WidgetBuilder? loadingBuilder;
 
   /// Called when [suggestionsCallback] returns an empty array.
   ///
@@ -111,7 +154,7 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
   /// ```
   ///
   /// If not specified, a simple text is shown
-  final WidgetBuilder noItemsFoundBuilder;
+  final WidgetBuilder? noItemsFoundBuilder;
 
   /// Called when [suggestionsCallback] throws an exception.
   ///
@@ -125,7 +168,7 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
   /// ```
   ///
   /// If not specified, the error is shown in [ThemeData.errorColor](https://docs.flutter.io/flutter/material/ThemeData/errorColor.html)
-  final ErrorBuilder errorBuilder;
+  final ErrorBuilder? errorBuilder;
 
   /// Called to display animations when [suggestionsCallback] returns suggestions
   ///
@@ -151,7 +194,7 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
   /// To fully remove the animation, just return `suggestionsBox`
   ///
   /// If not specified, a [SizeTransition](https://docs.flutter.io/flutter/widgets/SizeTransition-class.html) is shown.
-  final AnimationTransitionBuilder transitionBuilder;
+  final AnimationTransitionBuilder? transitionBuilder;
 
   /// The duration that [transitionBuilder] animation takes.
   ///
@@ -255,29 +298,29 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
   /// Controls the text being edited.
   ///
   /// If null, this widget will create its own [TextEditingController].
-  final TextEditingController controller;
+  final TextEditingController? controller;
 
   final bool hideKeyboard;
 
   /// Creates text field that auto-completes user input from a list of items
   FormBuilderTypeAhead({
-    Key key,
+    required Key key,
     //From Super
-    @required String name,
-    FormFieldValidator<T> validator,
-    T initialValue,
+    required String name,
+    required FormFieldValidator<T> validator,
+    required T initialValue,
     InputDecoration decoration = const InputDecoration(),
-    ValueChanged<T> onChanged,
-    ValueTransformer<T> valueTransformer,
+    required ValueChanged<T> onChanged,
+    required ValueTransformer<T> valueTransformer,
     bool enabled = true,
-    FormFieldSetter<T> onSaved,
+    required FormFieldSetter<T> onSaved,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
-    VoidCallback onReset,
-    FocusNode focusNode,
-    @required this.itemBuilder,
-    @required this.suggestionsCallback,
+    required VoidCallback onReset,
+    required FocusNode focusNode,
+    required this.itemBuilder,
+    required this.suggestionsCallback,
     this.getImmediateSuggestions = false,
-    this.selectionToTextTransformer,
+    required this.selectionToTextTransformer,
     this.errorBuilder,
     this.noItemsFoundBuilder,
     this.loadingBuilder,
@@ -300,74 +343,52 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
     this.onSuggestionSelected,
     this.controller,
     this.hideKeyboard = false,
-  })  : assert(T == String || selectionToTextTransformer != null),
-        super(
-          key: key,
-          initialValue: initialValue,
-          name: name,
-          validator: validator,
-          valueTransformer: valueTransformer,
-          onChanged: onChanged,
-          autovalidateMode: autovalidateMode,
-          onSaved: onSaved,
-          enabled: enabled,
-          onReset: onReset,
-          decoration: decoration,
-          focusNode: focusNode,
-          builder: (FormFieldState<T> field) {
-            final state = field as _FormBuilderTypeAheadState<T>;
-            final theme = Theme.of(state.context);
+  }) : super(
+         key: key,
+         initialValue: initialValue,
+         name: name,
+         validator: validator,
+         valueTransformer: valueTransformer != null
+             ? (val) => valueTransformer(val as T)
+             : null,
+         onChanged: onChanged != null ? (val) => onChanged(val as T) : null,
+         autovalidateMode: autovalidateMode,
+         onSaved: onSaved,
+         enabled: enabled,
+         onReset: onReset,
+         // decoration: decoration,
+         focusNode: focusNode,
+         builder: (FormFieldState<T> field) {
+           final state = field as _FormBuilderTypeAheadState<T>;
+           final theme = Theme.of(state.context);
 
-            return TypeAheadField<T>(
-              textFieldConfiguration: textFieldConfiguration.copyWith(
-                enabled: state.enabled,
-                controller: state._typeAheadController,
-                style: state.enabled
-                    ? textFieldConfiguration.style
-                    : theme.textTheme.subtitle1.copyWith(
-                        color: theme.disabledColor,
-                      ),
-                focusNode: state.effectiveFocusNode,
-                decoration: state.decoration,
-              ),
-              // HACK to satisfy strictness
-              suggestionsCallback: suggestionsCallback,
-              itemBuilder: itemBuilder,
-              transitionBuilder: (context, suggestionsBox, controller) =>
-                  suggestionsBox,
-              onSuggestionSelected: (T suggestion) {
-                if (selectionToTextTransformer != null) {
-                  state._typeAheadController.text =
-                      selectionToTextTransformer(suggestion);
-                } else {
-                  state._typeAheadController.text =
-                      suggestion != null ? suggestion.toString() : '';
-                }
-                onSuggestionSelected?.call(suggestion);
-              },
-              getImmediateSuggestions: getImmediateSuggestions,
-              errorBuilder: errorBuilder,
-              noItemsFoundBuilder: noItemsFoundBuilder,
-              loadingBuilder: loadingBuilder,
-              debounceDuration: debounceDuration,
-              suggestionsBoxDecoration: suggestionsBoxDecoration,
-              suggestionsBoxVerticalOffset: suggestionsBoxVerticalOffset,
-              animationDuration: animationDuration,
-              animationStart: animationStart,
-              direction: direction,
-              hideOnLoading: hideOnLoading,
-              hideOnEmpty: hideOnEmpty,
-              hideOnError: hideOnError,
-              hideSuggestionsOnKeyboardHide: hideSuggestionsOnKeyboardHide,
-              keepSuggestionsOnLoading: keepSuggestionsOnLoading,
-              autoFlipDirection: autoFlipDirection,
-              suggestionsBoxController: suggestionsBoxController,
-              keepSuggestionsOnSuggestionSelected:
-                  keepSuggestionsOnSuggestionSelected,
-              hideKeyboard: hideKeyboard,
-            );
-          },
-        );
+           return TypeAheadField<T>(
+             controller: state._typeAheadController,
+             builder: (context, controller, focusNode) {
+               return TextField(
+                 controller: controller,
+                 focusNode: focusNode,
+                 enabled: state.enabled,
+                 style: state.enabled
+                     ? textFieldConfiguration.style
+                     : theme.textTheme.bodyLarge?.copyWith(
+                         color: theme.disabledColor,
+                       ),
+               );
+             },
+             suggestionsCallback: suggestionsCallback,
+             itemBuilder: (context, suggestion) =>
+                 itemBuilder(context, suggestion),
+             onSelected: (suggestion) {
+               final typedField = field as FormBuilderField<T>;
+               if (onSuggestionSelected != null) {
+                 onSuggestionSelected!(suggestion);
+               }
+               field.didChange(suggestion);
+             },
+           );
+         },
+       );
 
   @override
   _FormBuilderTypeAheadState<T> createState() =>
@@ -376,12 +397,13 @@ class FormBuilderTypeAhead<T> extends FormBuilderField<T> {
 
 class _FormBuilderTypeAheadState<T>
     extends FormBuilderFieldState<FormBuilderTypeAhead<T>, T> {
-  TextEditingController _typeAheadController;
+  late TextEditingController _typeAheadController;
 
   @override
   void initState() {
     super.initState();
-    _typeAheadController = widget.controller ??
+    _typeAheadController =
+        widget.controller ??
         TextEditingController(text: widget.initialValue?.toString());
     _typeAheadController.addListener(_handleControllerChanged);
   }
@@ -394,17 +416,21 @@ class _FormBuilderTypeAheadState<T>
     // notifications for changes originating from within this class -- for
     // example, the reset() method. In such cases, the FormField value will
     // already have been set.
-    if (_typeAheadController.text != value) {
-      didChange(_typeAheadController.text as T);
+    if (_typeAheadController.text != value?.toString()) {
+      didChange(
+        _typeAheadController.text.isEmpty
+            ? null
+            : _typeAheadController.text as T,
+      );
     }
   }
 
   @override
-  void didChange(T value) {
+  void didChange(T? value) {
     super.didChange(value);
 
-    if (_typeAheadController.text != value) {
-      _typeAheadController.text = value.toString();
+    if (_typeAheadController.text != value?.toString()) {
+      _typeAheadController.text = value?.toString() ?? '';
     }
   }
 
@@ -420,6 +446,6 @@ class _FormBuilderTypeAheadState<T>
   @override
   void reset() {
     super.reset();
-    _typeAheadController.text = initialValue?.toString();
+    _typeAheadController.text = initialValue?.toString() ?? '';
   }
 }

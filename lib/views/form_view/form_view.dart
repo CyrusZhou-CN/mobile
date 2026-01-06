@@ -45,43 +45,37 @@ class FormView extends StatelessWidget {
   final DoctypeDoc? meta;
   final String? doctype;
 
-  FormView({
-    required this.name,
-    this.meta,
-    this.doctype,
-  });
+  FormView({required this.name, this.meta, this.doctype});
 
   final formHelper = FormHelper();
   @override
   Widget build(BuildContext context) {
     return BaseWidget<FormViewViewModel>(
       onModelReady: (model) {
-        model.init(
-          doctype: doctype,
-          constName: name,
-          constMeta: meta,
-        );
+        model.init(doctype: doctype, constName: name, constMeta: meta);
       },
       model: FormViewViewModel(),
       builder: (context, model, child) => model.state == ViewState.busy
-          ? Scaffold(
-              body: Center(
-              child: CircularProgressIndicator(),
-            ))
+          ? Scaffold(body: Center(child: CircularProgressIndicator()))
           : Builder(
               builder: (context) {
                 if (model.error != null) {
                   return handleError(
-                      error: model.error,
-                      context: context,
-                      onRetry: () {
-                        model.communicationOnly = true;
+                    error: model.error!,
+                    context: context,
+                    onRetry: () {
+                      model.communicationOnly = true;
 
-                        model.getData();
-                      });
+                      model.getData();
+                    },
+                  );
                 }
 
                 var docs = model.formData.docs;
+                if (docs == null || docs.isEmpty) {
+                  return Center(child: Text('No document data available'));
+                }
+
                 late String status;
 
                 if (docs[0]["status"] == null) {
@@ -123,18 +117,18 @@ class FormView extends StatelessWidget {
                           title: 'Save',
                           onPressed: !model.isDirty
                               ? () => {
-                                    FrappeAlert.warnAlert(
-                                      title: "No changes in document",
-                                      context: context,
-                                    )
-                                  }
-                              : () => _handleUpdate(
-                                    doc: docs[0],
-                                    model: model,
+                                  FrappeAlert.warnAlert(
+                                    title: "No changes in document",
                                     context: context,
                                   ),
+                                }
+                              : () => _handleUpdate(
+                                  doc: docs[0],
+                                  model: model,
+                                  context: context,
+                                ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                   body: Builder(
@@ -168,7 +162,7 @@ class FormView extends StatelessWidget {
                                   Indicator.buildStatusButton(
                                     model.meta.name,
                                     status,
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -186,19 +180,15 @@ class FormView extends StatelessWidget {
                               onChanged: () {
                                 model.handleFormDataChange();
                               },
-                              fields: model.meta.fields.where(
-                                (field) {
-                                  return field.hidden != 1 &&
-                                      field.fieldtype != "Column Break";
-                                },
-                              ).toList(),
+                              fields: model.meta.fields.where((field) {
+                                return field.hidden != 1 &&
+                                    field.fieldtype != "Column Break";
+                              }).toList(),
                               formHelper: formHelper,
                               doc: docs[0],
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 10,
-                              ),
+                              padding: const EdgeInsets.only(bottom: 10),
                               child: ListTileTheme(
                                 tileColor: Colors.white,
                                 child: CustomExpansionTile(
@@ -224,7 +214,7 @@ class FormView extends StatelessWidget {
                                           model.getDocinfo();
                                         },
                                       ),
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
@@ -241,12 +231,10 @@ class FormView extends StatelessWidget {
                                 model.getDocinfo();
                               },
                               emailSubjectField:
-                                  docs[0][model.meta.subjectField] ??
-                                      getTitle(
-                                        model.meta,
-                                        docs[0],
-                                      ),
-                              emailSenderField: docs[0][model.meta.senderField],
+                                  docs[0][model.meta.subjectField ?? ''] ??
+                                  getTitle(model.meta, docs[0]),
+                              emailSenderField:
+                                  docs[0][model.meta.senderField ?? ''] ?? '',
                             ),
                           ],
                         ),
@@ -268,23 +256,14 @@ class FormView extends StatelessWidget {
       var formValue = formHelper.getFormValue();
 
       try {
-        await model.handleUpdate(
-          formValue: formValue,
-          doc: doc,
-        );
-        FrappeAlert.infoAlert(
-          title: 'Changes Saved',
-          context: context,
-        );
+        await model.handleUpdate(formValue: formValue, doc: doc);
+        FrappeAlert.infoAlert(title: 'Changes Saved', context: context);
       } catch (e) {
         var _e = e as ErrorResponse;
         if (_e.statusCode == HttpStatus.serviceUnavailable) {
           noInternetAlert(context);
         } else {
-          FrappeAlert.errorAlert(
-            title: _e.statusMessage,
-            context: context,
-          );
+          FrappeAlert.errorAlert(title: _e.statusMessage, context: context);
         }
       }
     }
@@ -313,22 +292,16 @@ class DocInfo extends StatelessWidget {
     return Builder(
       builder: (context) {
         List<EnergyPointLogs> reviews = docInfo.energyPointLogs != null
-            ? docInfo.energyPointLogs!.where(
-                (item) {
-                  return ["Appreciation", "Criticism"].contains(
-                    item.type,
-                  );
-                },
-              ).toList()
+            ? docInfo.energyPointLogs!.where((item) {
+                return ["Appreciation", "Criticism"].contains(item.type);
+              }).toList()
             : [];
 
         List tags = docInfo.tags.isNotEmpty ? docInfo.tags.split(',') : [];
 
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: 20,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -338,15 +311,14 @@ class DocInfo extends StatelessWidget {
                 actionIcon: FrappeIcons.add_user,
                 filledWidget: docInfo.assignments.isNotEmpty
                     ? CollapsedAvatars(
-                        docInfo.assignments.map(
-                          (assignment) {
-                            return assignment.owner;
-                          },
-                        ).toList(),
+                        docInfo.assignments.map((assignment) {
+                          return assignment.owner;
+                        }).toList(),
                       )
                     : null,
                 onTap: () async {
-                  bool refresh = await showModalBottomSheet(
+                  bool refresh =
+                      await showModalBottomSheet(
                         context: context,
                         useRootNavigator: true,
                         isScrollControlled: true,
@@ -380,15 +352,15 @@ class DocInfo extends StatelessWidget {
                 onTap: () async {
                   List<UploadedFile>? uploadedFiles =
                       await showModalBottomSheet(
-                    context: context,
-                    useRootNavigator: true,
-                    isScrollControlled: true,
-                    builder: (context) => ViewAttachmentsBottomSheetView(
-                      attachments: docInfo.attachments,
-                      name: name,
-                      doctype: doctype,
-                    ),
-                  );
+                        context: context,
+                        useRootNavigator: true,
+                        isScrollControlled: true,
+                        builder: (context) => ViewAttachmentsBottomSheetView(
+                          attachments: docInfo.attachments,
+                          name: name,
+                          doctype: doctype,
+                        ),
+                      );
 
                   if (uploadedFiles != null) {
                     refreshCallback();
@@ -400,14 +372,13 @@ class DocInfo extends StatelessWidget {
                   title: 'Reviews',
                   actionTitle: 'Add review',
                   filledWidget: reviews.isNotEmpty
-                      ? CollapsedReviews(
-                          reviews,
-                        )
+                      ? CollapsedReviews(reviews)
                       : null,
                   actionIcon: FrappeIcons.review,
                   onTap: () async {
                     if (reviews.isEmpty) {
-                      bool refresh = await showModalBottomSheet(
+                      bool refresh =
+                          await showModalBottomSheet(
                             context: context,
                             useRootNavigator: true,
                             isScrollControlled: true,
@@ -424,7 +395,8 @@ class DocInfo extends StatelessWidget {
                         refreshCallback();
                       }
                     } else {
-                      bool refresh = await showModalBottomSheet(
+                      bool refresh =
+                          await showModalBottomSheet(
                             context: context,
                             useRootNavigator: true,
                             isScrollControlled: true,
@@ -477,17 +449,16 @@ class DocInfo extends StatelessWidget {
                 actionTitle: 'Shared with',
                 filledWidget: docInfo.shared.isNotEmpty
                     ? CollapsedAvatars(
-                        docInfo.shared.map(
-                          (share) {
-                            return share.owner;
-                          },
-                        ).toList(),
+                        docInfo.shared.map((share) {
+                          return share.owner;
+                        }).toList(),
                       )
                     : null,
                 showBorder: false,
                 actionIcon: FrappeIcons.share,
                 onTap: () async {
-                  bool refresh = await showModalBottomSheet(
+                  bool refresh =
+                      await showModalBottomSheet(
                         context: context,
                         useRootNavigator: true,
                         isScrollControlled: true,
@@ -533,50 +504,52 @@ class DocInfoItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 60,
-      child: FlatButton(
-        onPressed: onTap,
-        shape: showBorder
-            ? Border(
-                bottom: BorderSide(
-                  color: FrappePalette.grey[200]!,
-                  width: 2,
+      child: Container(
+        decoration: showBorder
+            ? BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: FrappePalette.grey[200]!, width: 2),
                 ),
               )
             : null,
-        padding: EdgeInsets.symmetric(vertical: 14),
-        child: Row(
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                color: FrappePalette.grey[900],
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            Spacer(),
-            filledWidget ??
-                Row(
-                  children: [
-                    FrappeIcon(
-                      actionIcon,
-                      color: FrappePalette.grey[600],
-                      size: 13,
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text(
-                      actionTitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: FrappePalette.grey[600],
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
+        child: TextButton(
+          onPressed: onTap,
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Row(
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: FrappePalette.grey[900],
+                  fontWeight: FontWeight.w400,
                 ),
-          ],
+              ),
+              const Spacer(),
+              filledWidget ??
+                  Row(
+                    children: [
+                      FrappeIcon(
+                        actionIcon,
+                        color: FrappePalette.grey[600],
+                        size: 13,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        actionTitle,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: FrappePalette.grey[600],
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+            ],
+          ),
         ),
       ),
     );

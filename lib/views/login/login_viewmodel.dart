@@ -18,10 +18,7 @@ class SavedCredentials {
   String? serverURL;
   String? usr;
 
-  SavedCredentials({
-    this.serverURL,
-    this.usr,
-  });
+  SavedCredentials({this.serverURL, this.usr});
 }
 
 @lazySingleton
@@ -42,23 +39,17 @@ class LoginViewModel extends BaseViewModel {
   updateUserDetails(LoginResponse response) {
     Config.set('isLoggedIn', true);
 
-    Config.set(
-      'userId',
-      response.userId,
-    );
-    Config.set(
-      'user',
-      response.fullName,
-    );
+    Config.set('userId', response.userId);
+    Config.set('user', response.fullName);
   }
 
   getSystemSettings() async {
+    print('Loading system settings...');
     var systemSettings = await locator<Api>().getSystemSettings();
+    print('System settings loaded: ${systemSettings.toJson()}');
     // TODO: check permission
-    OfflineStorage.putItem(
-      'systemSettings',
-      systemSettings.toJson(),
-    );
+    OfflineStorage.putItem('systemSettings', systemSettings.toJson());
+    print('System settings saved to OfflineStorage');
   }
 
   Future<LoginResponse> login(LoginRequest loginRequest) async {
@@ -66,9 +57,10 @@ class LoginViewModel extends BaseViewModel {
     notifyListeners();
 
     try {
-      var response = await locator<Api>().login(
-        loginRequest,
-      );
+      print('Making login API call to: ${Config().baseUrl}/api/method/login');
+      var response = await locator<Api>().login(loginRequest);
+
+      print('Login API response received: ${response.toJson()}');
 
       if (response.verification != null) {
         loginButtonLabel = "Verify";
@@ -76,15 +68,32 @@ class LoginViewModel extends BaseViewModel {
       } else {
         updateUserDetails(response);
 
-        OfflineStorage.putItem(
-          'usr',
-          loginRequest.usr,
-        );
+        OfflineStorage.putItem('usr', loginRequest.usr);
 
-        await cacheAllUsers();
-        await initAwesomeItems();
-        await DioHelper.initCookies();
-        getSystemSettings();
+        // These operations are not critical for login success
+        try {
+          await cacheAllUsers();
+        } catch (e) {
+          print('Warning: Failed to cache all users: $e');
+        }
+
+        try {
+          await initAwesomeItems();
+        } catch (e) {
+          print('Warning: Failed to initialize awesome items: $e');
+        }
+
+        try {
+          await DioHelper.initCookies();
+        } catch (e) {
+          print('Warning: Failed to initialize cookies: $e');
+        }
+
+        try {
+          await getSystemSettings();
+        } catch (e) {
+          print('Warning: Failed to get system settings: $e');
+        }
 
         loginButtonLabel = "Success";
         notifyListeners();
@@ -92,6 +101,7 @@ class LoginViewModel extends BaseViewModel {
         return response;
       }
     } catch (e) {
+      print('Login failed with error: $e');
       Config.set('isLoggedIn', false);
       loginButtonLabel = "Login";
       notifyListeners();

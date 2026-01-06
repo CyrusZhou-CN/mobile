@@ -30,7 +30,7 @@ class Data extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(f(context));
+      validators.add(f);
     }
 
     return FormBuilderTextField(
@@ -43,9 +43,7 @@ class Data extends StatelessWidget with Control, ControlInput {
         fillColor: color,
         prefixIcon: prefixIcon != null
             ? Padding(
-                padding: EdgeInsets.only(
-                  right: 6,
-                ),
+                padding: EdgeInsets.only(right: 6),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,

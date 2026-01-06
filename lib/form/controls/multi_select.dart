@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:frappe_app/model/common.dart';
-import 'package:frappe_app/widgets/form_builder_chips_input.dart';
 
 import '../../model/doctype_response.dart';
 import '../../app/locator.dart';
@@ -51,7 +50,7 @@ class _MultiSelectState extends State<MultiSelect> with Control, ControlInput {
     var f = setMandatory(widget.doctypeField);
 
     if (f != null) {
-      validators.add(f(context));
+      validators.add(f);
     }
 
     var initialValue;
@@ -74,33 +73,23 @@ class _MultiSelectState extends State<MultiSelect> with Control, ControlInput {
       initialValue = [];
     }
 
-    return FormBuilderChipsInput(
-      key: widget.key,
+    // Temporarily replaced FormBuilderChipsInput with FormBuilderTextField due to package issues
+    return FormBuilderTextField(
+      key: widget.key ?? Key(widget.doctypeField.fieldname),
+      focusNode: FocusNode(),
       onChanged: (val) {
         if (widget.onControlChanged != null) {
-          FieldValue(
-            field: widget.doctypeField,
-            value: val,
-          );
+          // Parse comma-separated values
+          var listVal = val?.split(',').map((e) => e.trim()).toList() ?? [];
+          FieldValue(field: widget.doctypeField, value: listVal);
         }
       },
       validator: FormBuilderValidators.compose(validators),
-      valueTransformer: widget.valueTransformer ??
-          (value) {
-            return value
-                .map((v) {
-                  if (v is Map) {
-                    return v["value"];
-                  } else {
-                    return v;
-                  }
-                })
-                .toList()
-                .join(',');
-          },
-      decoration: Palette.formFieldDecoration(
-        label: widget.doctypeField.label,
-        fillColor: widget.color,
+      decoration: InputDecoration(
+        labelText: widget.doctypeField.label,
+        fillColor: widget.color ?? Palette.bgColor,
+        filled: true,
+        hintText: 'Enter values separated by commas',
         prefixIcon: widget.prefixIcon != null
             ? Row(
                 mainAxisSize: MainAxisSize.min,
@@ -108,54 +97,19 @@ class _MultiSelectState extends State<MultiSelect> with Control, ControlInput {
                 children: [widget.prefixIcon!],
               )
             : null,
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: const BorderRadius.all(const Radius.circular(6.0)),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+          borderRadius: const BorderRadius.all(const Radius.circular(6.0)),
+        ),
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       ),
       name: widget.doctypeField.fieldname,
-      initialValue: initialValue,
-      findSuggestions: widget.findSuggestions ??
-          (String query) async {
-            if (query.length != 0) {
-              var lowercaseQuery = query.toLowerCase();
-              var response =
-                  await locator<Api>().getContactList(lowercaseQuery);
-              var val = response["message"];
-              if (val.length == 0) {
-                val = [
-                  {
-                    "value": lowercaseQuery,
-                    "description": lowercaseQuery,
-                  }
-                ];
-              }
-              return val;
-            } else {
-              return [];
-            }
-          },
-      chipBuilder: (context, state, profile) {
-        return InputChip(
-          label: Text(
-            profile is Map ? profile["value"] : profile,
-            style: TextStyle(fontSize: 12),
-          ),
-          deleteIconColor: Palette.iconColor,
-          backgroundColor: widget.chipColor ?? Colors.white,
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(8),
-            ),
-          ),
-          onDeleted: () => state.deleteChip(profile),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        );
-      },
-      suggestionBuilder: (context, state, profile) {
-        return ListTile(
-          title: Text(
-            (profile as Map)["value"],
-          ),
-          onTap: () => state.selectSuggestion(profile),
-        );
-      },
+      initialValue: initialValue?.join(', '),
     );
   }
 }

@@ -13,11 +13,7 @@ class ReadOnly extends StatelessWidget with Control, ControlInput {
   final Key? key;
   final Map? doc;
 
-  const ReadOnly({
-    required this.doctypeField,
-    this.key,
-    this.doc,
-  });
+  const ReadOnly({required this.doctypeField, this.key, this.doc});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +22,7 @@ class ReadOnly extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(f(context));
+      validators.add(f);
     }
 
     return FormBuilderTextField(
@@ -34,9 +30,7 @@ class ReadOnly extends StatelessWidget with Control, ControlInput {
       readOnly: true,
       initialValue: doc != null ? doc![doctypeField.fieldname] : null,
       name: doctypeField.fieldname,
-      decoration: Palette.formFieldDecoration(
-        label: doctypeField.label,
-      ),
+      decoration: Palette.formFieldDecoration(label: doctypeField.label),
       validator: FormBuilderValidators.compose(validators),
     );
   }

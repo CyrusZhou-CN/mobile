@@ -7,7 +7,7 @@ import 'package:frappe_app/model/desk_sidebar_items_response.dart';
 import 'package:frappe_app/model/desktop_page_response.dart';
 import 'package:frappe_app/views/form_view/form_view.dart';
 import 'package:injectable/injectable.dart';
-import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 import '../../app/locator.dart';
 
@@ -51,21 +51,9 @@ class ListViewViewModel extends BaseViewModel {
     var _fields = meta.docs[0].fields.where((element) => true).toList();
 
     _fields.addAll([
-      DoctypeField(
-        fieldname: 'idx',
-        label: "Most Used",
-        reqd: 1,
-      ),
-      DoctypeField(
-        fieldname: 'modified',
-        label: "Last Modified On",
-        reqd: 1,
-      ),
-      DoctypeField(
-        fieldname: 'creation',
-        label: "Created On",
-        reqd: 1,
-      ),
+      DoctypeField(fieldname: 'idx', label: "Most Used", reqd: 1),
+      DoctypeField(fieldname: 'modified', label: "Last Modified On", reqd: 1),
+      DoctypeField(fieldname: 'creation', label: "Created On", reqd: 1),
     ]);
 
     var metaSortField = meta.docs[0].sortField!.split(",")[0].split(" ")[0];
@@ -78,14 +66,12 @@ class ListViewViewModel extends BaseViewModel {
     );
     _sortableFields.add(metaSortDoctypeField);
 
-    _fields.forEach(
-      (field) {
-        if ((field.bold == 1 || field.reqd == 1) &&
-            field.fieldname != metaSortField) {
-          _sortableFields.add(field);
-        }
-      },
-    );
+    _fields.forEach((field) {
+      if ((field.bold == 1 || field.reqd == 1) &&
+          field.fieldname != metaSortField) {
+        _sortableFields.add(field);
+      }
+    });
 
     sortableFields = _sortableFields;
     sortField = sortableFields[0];
@@ -101,28 +87,26 @@ class ListViewViewModel extends BaseViewModel {
 
     if (userSettingsList != null &&
         (userSettingsList["filters"] as List).isNotEmpty) {
-      (userSettingsList["filters"] as List).forEach(
-        (listFilter) {
-          filters.add(
-            Filter(
-              field: meta.docs[0].fields.firstWhere(
-                (metaField) => metaField.fieldname == listFilter[1],
-                orElse: () {
-                  return DoctypeField(
-                    fieldname: listFilter[1],
-                    label: listFilter[1],
-                  );
-                },
-              ),
-              filterOperator: FilterOperator(
-                label: Constants.filterOperatorLabelMapping[listFilter[2]]!,
-                value: listFilter[2],
-              ),
-              value: listFilter[3].toString(),
+      (userSettingsList["filters"] as List).forEach((listFilter) {
+        filters.add(
+          Filter(
+            field: meta.docs[0].fields.firstWhere(
+              (metaField) => metaField.fieldname == listFilter[1],
+              orElse: () {
+                return DoctypeField(
+                  fieldname: listFilter[1],
+                  label: listFilter[1],
+                );
+              },
             ),
-          );
-        },
-      );
+            filterOperator: FilterOperator(
+              label: Constants.filterOperatorLabelMapping[listFilter[2]]!,
+              value: listFilter[2],
+            ),
+            value: listFilter[3].toString(),
+          ),
+        );
+      });
 
       if (userSettingsList["sort_by"] != null) {
         sortField = meta.docs[0].fields.firstWhere(
@@ -141,28 +125,26 @@ class ListViewViewModel extends BaseViewModel {
       }
     } else if (userSettingsReport != null &&
         (userSettingsReport["filters"] as List).isNotEmpty) {
-      (userSettingsReport["filters"] as List).forEach(
-        (reportFilter) {
-          filters.add(
-            Filter(
-              field: meta.docs[0].fields.firstWhere(
-                (metaField) => metaField.fieldname == reportFilter[1],
-                orElse: () {
-                  return DoctypeField(
-                    fieldname: reportFilter[1],
-                    label: reportFilter[1],
-                  );
-                },
-              ),
-              filterOperator: FilterOperator(
-                label: Constants.filterOperatorLabelMapping[reportFilter[2]]!,
-                value: reportFilter[2],
-              ),
-              value: reportFilter[3].toString(),
+      (userSettingsReport["filters"] as List).forEach((reportFilter) {
+        filters.add(
+          Filter(
+            field: meta.docs[0].fields.firstWhere(
+              (metaField) => metaField.fieldname == reportFilter[1],
+              orElse: () {
+                return DoctypeField(
+                  fieldname: reportFilter[1],
+                  label: reportFilter[1],
+                );
+              },
             ),
-          );
-        },
-      );
+            filterOperator: FilterOperator(
+              label: Constants.filterOperatorLabelMapping[reportFilter[2]]!,
+              value: reportFilter[2],
+            ),
+            value: reportFilter[3].toString(),
+          ),
+        );
+      });
 
       if (userSettingsReport["sort_by"] != null) {
         sortField = meta.docs[0].fields.firstWhere(
@@ -215,10 +197,7 @@ class ListViewViewModel extends BaseViewModel {
               doctype: meta.docs[0].name,
               orderBy:
                   '`tab${meta.docs[0].name}`.`${sortField.fieldname}` $sortOrder',
-              fieldnames: generateFieldnames(
-                meta.docs[0].name,
-                meta.docs[0],
-              ),
+              fieldnames: generateFieldnames(meta.docs[0].name, meta.docs[0]),
               pageLength: Constants.pageSize,
               offset: pageIndex! * Constants.pageSize,
             );
@@ -228,15 +207,10 @@ class ListViewViewModel extends BaseViewModel {
         pagewiseLoadController = PagewiseLoadController(
           pageSize: Constants.offlinePageSize,
           pageFuture: (pageIndex) {
-            return Future.delayed(
-              Duration(seconds: 0),
-              () {
-                var response = OfflineStorage.getItem(
-                  '${meta.docs[0].name}List',
-                );
-                return response["data"];
-              },
-            );
+            return Future.delayed(Duration(seconds: 0), () {
+              var response = OfflineStorage.getItem('${meta.docs[0].name}List');
+              return response["data"];
+            });
           },
         );
       }
@@ -248,25 +222,19 @@ class ListViewViewModel extends BaseViewModel {
     setState(ViewState.idle);
   }
 
-  onListTap({
-    required String name,
-    required BuildContext context,
-  }) {
+  onListTap({required String name, required BuildContext context}) {
     {
-      pushNewScreen(
+      PersistentNavBarNavigator.pushNewScreen(
         context,
-        screen: FormView(
-          name: name,
-          meta: meta.docs[0],
-        ),
+        screen: FormView(name: name, meta: meta.docs[0]),
         withNavBar: true,
       );
     }
   }
 
   // onButtonTap({
-  //   @required String key,
-  //   @required String value,
+  //   required String key,
+  //   required String value,
   // }) {
   //   filters[key] = value;
   //   pagewiseLoadController.reset();
@@ -298,13 +266,9 @@ class ListViewViewModel extends BaseViewModel {
         late DeskSidebarItemsResponse deskItems;
 
         if (deskSidebarItemsCache != null) {
-          deskItems = DeskSidebarItemsResponse.fromJson(
-            deskSidebarItemsCache,
-          );
+          deskItems = DeskSidebarItemsResponse.fromJson(deskSidebarItemsCache);
         } else {
-          throw ErrorResponse(
-            statusCode: HttpStatus.serviceUnavailable,
-          );
+          throw ErrorResponse(statusCode: HttpStatus.serviceUnavailable);
         }
 
         var desktopPage = module;
@@ -316,16 +280,16 @@ class ListViewViewModel extends BaseViewModel {
           }
         }
 
-        var offlinedesktopPageResponse =
-            OfflineStorage.getItem('${desktopPage}Doctypes')["data"];
+        var offlinedesktopPageResponse = OfflineStorage.getItem(
+          '${desktopPage}Doctypes',
+        )["data"];
 
         if (offlinedesktopPageResponse != null) {
-          desktopPageResponse =
-              DesktopPageResponse.fromJson(offlinedesktopPageResponse);
-        } else {
-          throw ErrorResponse(
-            statusCode: HttpStatus.serviceUnavailable,
+          desktopPageResponse = DesktopPageResponse.fromJson(
+            offlinedesktopPageResponse,
           );
+        } else {
+          throw ErrorResponse(statusCode: HttpStatus.serviceUnavailable);
         }
       }
     } catch (e) {
@@ -341,12 +305,9 @@ class ListViewViewModel extends BaseViewModel {
     var _meta = await OfflineStorage.getMeta(doctype);
 
     if (_meta.docs[0].issingle == 1) {
-      pushNewScreen(
+      PersistentNavBarNavigator.pushNewScreen(
         context,
-        screen: FormView(
-          meta: _meta.docs[0],
-          name: _meta.docs[0].name,
-        ),
+        screen: FormView(meta: _meta.docs[0], name: _meta.docs[0].name),
         withNavBar: true,
       );
     } else {
@@ -371,19 +332,11 @@ class ListViewViewModel extends BaseViewModel {
     if (appliedFilters != null) {
       if (appliedFilters.isNotEmpty) {
         List<Filter> appliedFiltersClone = [];
-        appliedFilters.forEach(
-          (appliedFilter) {
-            appliedFiltersClone.add(
-              Filter.fromJson(
-                json.decode(
-                  json.encode(
-                    appliedFilter,
-                  ),
-                ),
-              ),
-            );
-          },
-        );
+        appliedFilters.forEach((appliedFilter) {
+          appliedFiltersClone.add(
+            Filter.fromJson(json.decode(json.encode(appliedFilter))),
+          );
+        });
 
         filters = appliedFiltersClone;
         getData();

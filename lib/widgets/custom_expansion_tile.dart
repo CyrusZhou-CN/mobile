@@ -44,14 +44,14 @@ class CustomExpansionTile extends StatefulWidget {
     this.expandedCrossAxisAlignment,
     this.expandedAlignment,
     this.leadingArrow = false,
-  })  : assert(initiallyExpanded != null),
-        assert(maintainState != null),
-        assert(
-          expandedCrossAxisAlignment != CrossAxisAlignment.baseline,
-          'CrossAxisAlignment.baseline is not supported since the expanded children '
-          'are aligned in a column, not a row. Try to use another constant.',
-        ),
-        super(key: key);
+  }) : assert(initiallyExpanded != null),
+       assert(maintainState != null),
+       assert(
+         expandedCrossAxisAlignment != CrossAxisAlignment.baseline,
+         'CrossAxisAlignment.baseline is not supported since the expanded children '
+         'are aligned in a column, not a row. Try to use another constant.',
+       ),
+       super(key: key);
 
   /// A widget to display before the title.
   ///
@@ -149,12 +149,16 @@ class CustomExpansionTile extends StatefulWidget {
 
 class _CustomExpansionTileState extends State<CustomExpansionTile>
     with SingleTickerProviderStateMixin {
-  static final Animatable<double> _easeOutTween =
-      CurveTween(curve: Curves.easeOut);
-  static final Animatable<double> _easeInTween =
-      CurveTween(curve: Curves.easeIn);
-  static final Animatable<double> _halfTween =
-      Tween<double>(begin: 0.0, end: 0.5);
+  static final Animatable<double> _easeOutTween = CurveTween(
+    curve: Curves.easeOut,
+  );
+  static final Animatable<double> _easeInTween = CurveTween(
+    curve: Curves.easeIn,
+  );
+  static final Animatable<double> _halfTween = Tween<double>(
+    begin: 0.0,
+    end: 0.5,
+  );
 
   final ColorTween _borderColorTween = ColorTween();
   final ColorTween _headerColorTween = ColorTween();
@@ -180,10 +184,12 @@ class _CustomExpansionTileState extends State<CustomExpansionTile>
     _borderColor = _controller.drive(_borderColorTween.chain(_easeOutTween));
     _headerColor = _controller.drive(_headerColorTween.chain(_easeInTween));
     _iconColor = _controller.drive(_iconColorTween.chain(_easeInTween));
-    _backgroundColor =
-        _controller.drive(_backgroundColorTween.chain(_easeOutTween));
+    _backgroundColor = _controller.drive(
+      _backgroundColorTween.chain(_easeOutTween),
+    );
 
-    _isExpanded = PageStorage.of(context)?.readState(context) as bool? ??
+    _isExpanded =
+        PageStorage.of(context)?.readState(context) as bool? ??
         widget.initiallyExpanded;
     if (_isExpanded) _controller.value = 1.0;
   }
@@ -253,9 +259,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     widget.title,
-                    SizedBox(
-                      width: 5,
-                    ),
+                    SizedBox(width: 5),
                     widget.leadingArrow
                         ? widget.trailing!
                         : Padding(
@@ -291,11 +295,11 @@ class _CustomExpansionTileState extends State<CustomExpansionTile>
     final ThemeData theme = Theme.of(context);
     _borderColorTween.end = theme.dividerColor;
     _headerColorTween
-      ..begin = theme.textTheme.subtitle1!.color
-      ..end = theme.accentColor;
+      ..begin = theme.textTheme.bodyLarge!.color
+      ..end = theme.colorScheme.secondary;
     _iconColorTween
       ..begin = theme.unselectedWidgetColor
-      ..end = theme.accentColor;
+      ..end = theme.colorScheme.secondary;
     super.didChangeDependencies();
   }
 
@@ -305,15 +309,16 @@ class _CustomExpansionTileState extends State<CustomExpansionTile>
     final bool shouldRemoveChildren = closed && !widget.maintainState;
 
     final Widget result = Offstage(
-        child: TickerMode(
-          child: Column(
-            crossAxisAlignment:
-                widget.expandedCrossAxisAlignment ?? CrossAxisAlignment.center,
-            children: widget.children,
-          ),
-          enabled: !closed,
+      child: TickerMode(
+        child: Column(
+          crossAxisAlignment:
+              widget.expandedCrossAxisAlignment ?? CrossAxisAlignment.center,
+          children: widget.children,
         ),
-        offstage: closed);
+        enabled: !closed,
+      ),
+      offstage: closed,
+    );
 
     return AnimatedBuilder(
       animation: _controller.view,

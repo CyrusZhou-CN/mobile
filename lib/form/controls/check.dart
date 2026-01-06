@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:frappe_app/model/common.dart';
 import 'package:frappe_app/model/doctype_response.dart';
@@ -33,28 +32,26 @@ class Check extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(
-        f(context),
-      );
+      validators.add(f);
     }
 
     return CustomFormBuilderCheckbox(
       name: doctypeField.fieldname,
-      key: key,
-      enabled:
-          doctypeField.readOnly != null ? doctypeField.readOnly == 0 : true,
+      key: key ?? Key(doctypeField.fieldname),
+      enabled: doctypeField.readOnly != null
+          ? doctypeField.readOnly == 0
+          : true,
       valueTransformer: (val) {
         return val == true ? 1 : 0;
       },
       activeColor: FrappePalette.blue,
-      initialValue: doc != null ? doc![doctypeField.fieldname] == 1 : null,
+      initialValue: doc != null
+          ? (doc![doctypeField.fieldname] == 1 ? true : false)
+          : false,
       onChanged: (val) {
         if (onControlChanged != null) {
           onControlChanged!(
-            FieldValue(
-              field: doctypeField,
-              value: val == true ? 1 : 0,
-            ),
+            FieldValue(field: doctypeField, value: val == true ? 1 : 0),
           );
         }
       },

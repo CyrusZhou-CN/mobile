@@ -9,7 +9,7 @@ import 'package:frappe_app/utils/loading_indicator.dart';
 import 'package:frappe_app/views/form_view/form_view.dart';
 import 'package:frappe_app/views/list_view/list_view.dart';
 import 'package:injectable/injectable.dart';
-import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 import '../../app/locator.dart';
 import '../../services/api/api.dart';
@@ -31,15 +31,13 @@ class DeskViewModel extends BaseViewModel {
   late DesktopPageResponse desktopPage;
   ErrorResponse? error;
 
-  switchModule(
-    DeskMessage newModule,
-  ) async {
+  switchModule(DeskMessage newModule) async {
     setState(ViewState.busy);
     if (newModule.content != null) {
       currentModule = jsonEncode({
         "name": newModule.name,
         "title": newModule.name,
-        "content": newModule.content!
+        "content": newModule.content!,
       });
       currentModuleTitle = newModule.name;
     } else {
@@ -58,12 +56,14 @@ class DeskViewModel extends BaseViewModel {
     var isOnline = await verifyOnline();
 
     if (!isOnline) {
-      var deskSidebarItemsCache =
-          OfflineStorage.getItem('deskSidebarItems')["data"];
+      var deskSidebarItemsCache = OfflineStorage.getItem(
+        'deskSidebarItems',
+      )["data"];
 
       if (deskSidebarItemsCache != null) {
-        deskSidebarItems =
-            DeskSidebarItemsResponse.fromJson(deskSidebarItemsCache);
+        deskSidebarItems = DeskSidebarItemsResponse.fromJson(
+          deskSidebarItemsCache,
+        );
       } else {
         throw ErrorResponse(statusCode: HttpStatus.serviceUnavailable);
       }
@@ -77,31 +77,61 @@ class DeskViewModel extends BaseViewModel {
 
     modulesByCategory.clear();
 
-    deskSidebarItems.message.forEach(
-      (module) {
-        var category = "MODULES";
-        if (module.category != null) {
-          category = module.category!;
-        }
-        if (modulesByCategory[category] == null) {
-          modulesByCategory[category] = [module];
-        } else {
-          modulesByCategory[category]!.add(module);
-        }
-      },
+    deskSidebarItems.message.forEach((module) {
+      var category = "MODULES";
+      if (module.category != null) {
+        category = module.category!;
+      }
+      if (modulesByCategory[category] == null) {
+        modulesByCategory[category] = [module];
+      } else {
+        modulesByCategory[category]!.add(module);
+      }
+    });
+
+    print(
+      'DeskViewModel: Processed ${deskSidebarItems.message.length} modules',
     );
+    print('DeskViewModel: Categories: ${modulesByCategory.keys.toList()}');
   }
 
   getDesktopPage() async {
+    print(
+      'DeskViewModel: getDesktopPage called with currentModule: $currentModule',
+    );
     DesktopPageResponse _desktopPage;
 
     try {
       _desktopPage = await locator<Api>().getDesktopPage(currentModule);
+      print(
+        'DeskViewModel: getDesktopPage success, shortcuts: ${_desktopPage.message.shortcuts.items.length}, cards: ${_desktopPage.message.cards.items.length}',
+      );
     } catch (e) {
+      print('DeskViewModel: getDesktopPage failed: $e');
       throw e as ErrorResponse;
     }
 
     desktopPage = _desktopPage;
+    // TODO
+    // desktopPage.message.shortcuts.items.forEach(
+    //   (element) async {
+    //     if (element.format != null && element.statsFilter != null) {
+    //       var filters = element.statsFilter;
+
+    //       filters = filters!.replaceAll(
+    //         "frappe.session.user",
+    //         Config().userId!,
+    //       );
+
+    //       var count = await locator<Api>().getReportViewCount(
+    //         doctype: element.linkTo,
+    //         filters: jsonDecode(filters),
+    //       );
+
+    //       element.format = element.format!.replaceAll("{}", count.toString());
+    //     }
+    //   },
+    // );
     // TODO
     // desktopPage.message.shortcuts.items.forEach(
     //   (element) async {
@@ -128,14 +158,27 @@ class DeskViewModel extends BaseViewModel {
   getData() async {
     setState(ViewState.busy);
     try {
+      print('DeskViewModel: Starting getData()');
       await getDeskSidebarItems();
+
+      print(
+        'DeskViewModel: modulesByCategory keys: ${modulesByCategory.keys.toList()}',
+      );
+      print(
+        'DeskViewModel: modulesByCategory size: ${modulesByCategory.length}',
+      );
+
+      if (modulesByCategory.isEmpty) {
+        print('DeskViewModel: No modules found, throwing error');
+        throw ErrorResponse(statusMessage: 'No modules available');
+      }
 
       if (passedModule != null) {
         if (passedModule!.content != null) {
           currentModule = jsonEncode({
             "name": passedModule!.name,
             "title": passedModule!.name,
-            "content": passedModule!.content!
+            "content": passedModule!.content!,
           });
           currentModuleTitle = passedModule!.name;
         } else {
@@ -148,7 +191,7 @@ class DeskViewModel extends BaseViewModel {
           "name": modulesByCategory[modulesByCategory.keys.first]![0].name,
           "title": modulesByCategory[modulesByCategory.keys.first]![0].name,
           "content":
-              modulesByCategory[modulesByCategory.keys.first]![0].content!
+              modulesByCategory[modulesByCategory.keys.first]![0].content!,
         });
         currentModuleTitle =
             modulesByCategory[modulesByCategory.keys.first]![0].name;
@@ -179,21 +222,15 @@ class DeskViewModel extends BaseViewModel {
       LoadingIndicator.stopLoading();
 
       if (meta.docs[0].issingle == 1) {
-        pushNewScreen(
+        PersistentNavBarNavigator.pushNewScreen(
           context,
-          screen: FormView(
-            meta: meta.docs[0],
-            name: meta.docs[0].name,
-          ),
+          screen: FormView(meta: meta.docs[0], name: meta.docs[0].name),
           withNavBar: true,
         );
       } else {
-        pushNewScreen(
+        PersistentNavBarNavigator.pushNewScreen(
           context,
-          screen: CustomListView(
-            meta: meta,
-            module: currentModule,
-          ),
+          screen: CustomListView(meta: meta, module: currentModule),
           withNavBar: true,
         );
       }
@@ -204,10 +241,7 @@ class DeskViewModel extends BaseViewModel {
       if (_e.statusCode == HttpStatus.serviceUnavailable) {
         noInternetAlert(context);
       } else {
-        FrappeAlert.errorAlert(
-          context: context,
-          title: _e.statusMessage,
-        );
+        FrappeAlert.errorAlert(context: context, title: _e.statusMessage);
       }
     }
   }

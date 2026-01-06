@@ -1,10 +1,9 @@
-// @dart=2.9
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mentions/flutter_mentions.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:frappe_app/views/home_view.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart' hide Config;
 import 'package:provider/provider.dart';
 
 import 'lifecycle_manager.dart';
@@ -48,8 +47,8 @@ class _FrappeAppState extends State<FrappeApp> {
       ),
       textTheme: GoogleFonts.interTextTheme(
         Theme.of(context).textTheme.apply(
-            // fontSizeFactor: 0.7,
-            ),
+          // fontSizeFactor: 0.7,
+        ),
       ),
     );
 
@@ -64,9 +63,7 @@ class _FrappeAppState extends State<FrappeApp> {
             debugShowCheckedModeBanner: false,
             title: 'Frappe',
             theme: theme,
-            localizationsDelegates: [
-              FormBuilderLocalizations.delegate,
-            ],
+            localizationsDelegates: [FormBuilderLocalizations.delegate],
             home: GestureDetector(
               onTap: () {
                 FocusScope.of(context).requestFocus(new FocusNode());
@@ -74,11 +71,9 @@ class _FrappeAppState extends State<FrappeApp> {
               child: Scaffold(
                 body: _isLoaded
                     ? _isLoggedIn
-                        ? HomeView()
-                        : Login()
-                    : Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                          ? HomeView()
+                          : Login()
+                    : Center(child: CircularProgressIndicator()),
               ),
             ),
           ),

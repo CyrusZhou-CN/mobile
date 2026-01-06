@@ -29,9 +29,7 @@ class ControlText extends StatelessWidget with Control, ControlInput {
     var f = setMandatory(doctypeField);
 
     if (f != null) {
-      validators.add(
-        f(context),
-      );
+      validators.add(f);
     }
 
     return FormBuilderTextField(
@@ -39,9 +37,7 @@ class ControlText extends StatelessWidget with Control, ControlInput {
       onChanged: onChanged,
       initialValue: doc != null ? doc![doctypeField.fieldname] : null,
       name: doctypeField.fieldname,
-      decoration: Palette.formFieldDecoration(
-        label: doctypeField.label,
-      ),
+      decoration: Palette.formFieldDecoration(label: doctypeField.label),
       validator: FormBuilderValidators.compose(validators),
     );
   }
